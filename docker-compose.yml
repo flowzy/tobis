@@ -1,0 +1,25 @@
+services:
+  bot:
+    container_name: bot
+    image: oven/bun:latest
+    restart: on-failure
+    volumes:
+      - .:/home/bun/app
+    command: bun --watch run index.ts
+    tty: true
+    depends_on:
+      - lavalink
+
+  lavalink:
+    container_name: lavalink
+    image: ghcr.io/lavalink-devs/lavalink:ab0cae4-alpine
+    restart: unless-stopped
+    expose:
+      - ${LAVALINK_PORT}
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=${LAVALINK_PORT}
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+
+networks:
+  default:
