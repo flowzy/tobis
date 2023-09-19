@@ -28,6 +28,8 @@ export const env = createEnv({
 			.transform((value) => value === 'true'),
 		LAVALINK_PASSWORD: z.string().min(1),
 		LAVALINK_IDENTIFIER: z.string(),
+
+		SENTRY_DSN: z.string(),
 	},
 	runtimeEnv: process.env,
 });

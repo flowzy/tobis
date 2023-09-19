@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Player, SearchResult } from 'magmastream';
+import { SearchResult } from 'magmastream';
 import { Bot } from '~/bot';
 import { Command } from '~/interfaces/command';
 
@@ -16,21 +16,11 @@ export default class PlayCommand implements Command {
 			});
 		}
 
-		let player: Player;
+		const player = bot.lavalink.players.get(interaction.guildId);
 
-		try {
-			player = bot.lavalink.create({
-				guild: interaction.guildId,
-				voiceChannel: interaction.member.voice.channel.id,
-				textChannel: interaction.channelId,
-				volume: 100,
-				selfDeafen: true,
-			});
-		} catch (e) {
-			bot.logger.error(e);
-
+		if (!player) {
 			return interaction.reply({
-				content: 'Music player is not ready yet. Try again later!',
+				content: 'I am not in a voice channel.',
 				ephemeral: true,
 			});
 		}

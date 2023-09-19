@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
@@ -58,6 +59,12 @@ export default class PlayCommand implements Command {
 				selfDeafen: true,
 			});
 		} catch (e) {
+			Sentry.captureException(e, {
+				tags: {
+					command: 'play',
+				},
+			});
+
 			bot.logger.error(e);
 
 			return interaction.reply({
@@ -89,6 +96,16 @@ export default class PlayCommand implements Command {
 		);
 
 		if (result.loadType === 'error') {
+			Sentry.captureException(result, {
+				tags: {
+					command: 'play',
+				},
+				extra: {
+					query,
+					source,
+				},
+			});
+
 			return interaction.editReply(
 				createErrorMessage({
 					message: 'Something went wrong... Please try again later',

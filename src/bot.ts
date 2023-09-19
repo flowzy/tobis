@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import {
 	APIApplicationCommand,
 	Client,
@@ -7,7 +8,6 @@ import {
 	Routes,
 	TextBasedChannelFields,
 } from 'discord.js';
-import { glob } from 'glob';
 import { Manager } from 'magmastream';
 import { env } from '~/env';
 import { Command } from '~/interfaces/command';
@@ -17,6 +17,7 @@ import { logger } from '~/lib/logger';
 import { createNowPlayingMessage } from '~/messages/now-playing';
 import { createQueueEndedEmbed } from '~/messages/queue-ended';
 import { createCache, isCached } from '~/utils/cache';
+import { readDir } from '~/utils/fs';
 
 export class Bot {
 	public commands = new Collection<string, Command>();
@@ -62,54 +63,64 @@ export class Bot {
 	 * TODO: refactor this
 	 */
 	attachLavalinkHandlers() {
-		this.lavalink.on('nodeConnect', (node) => {
-			this.logger.info(
-				'Lavalink node "%s" connected!',
-				node.options.identifier,
-			);
-		});
+		Sentry.withScope((scope) => {
+			scope.setTransactionName('Lavalink Handlers');
 
-		this.lavalink.on('nodeError', (node, error) => {
-			this.logger.info(
-				'Lavalink node "%s" encountered an error: %s',
-				node.options.identifier,
-				error.message,
-			);
-		});
-
-		this.lavalink.on('trackStart', async (player, track) => {
-			clearTimeout(player.timeout);
-
-			if (!player.textChannel) return;
-
-			const channel = this.client.channels.cache.get(player.textChannel) as
-				| TextBasedChannelFields<true>
-				| undefined;
-
-			const message = await channel?.send(createNowPlayingMessage(track));
-
-			if (message) {
-				player.setNowPlayingMessage(message);
-			}
-		});
-
-		this.lavalink.on('queueEnd', (player) => {
-			if (!player.textChannel) return;
-
-			const channel = this.client.channels.cache.get(player.textChannel) as
-				| TextBasedChannelFields<true>
-				| undefined;
-
-			channel?.send({
-				embeds: [createQueueEndedEmbed()],
+			this.lavalink.on('nodeConnect', (node) => {
+				this.logger.info(
+					'Lavalink node "%s" connected!',
+					node.options.identifier,
+				);
 			});
 
-			if (env.BOT_IDLE_AUTO_DISCONNECT) {
-				player.timeout = setTimeout(
-					() => player.destroy(true),
-					env.BOT_IDLE_DISCONNECT_SECONDS * 1_000,
+			this.lavalink.on('nodeError', (node, error) => {
+				Sentry.captureException(error);
+
+				this.logger.info(
+					'Lavalink node "%s" encountered an error: %s',
+					node.options.identifier,
+					error.message,
 				);
-			}
+			});
+
+			this.lavalink.on('trackStart', async (player, track) => {
+				clearTimeout(player.timeout);
+
+				this.logger.debug('Started playing track %s', track.title);
+
+				if (!player.textChannel) return;
+
+				const channel = this.client.channels.cache.get(player.textChannel) as
+					| TextBasedChannelFields<true>
+					| undefined;
+
+				const message = await channel?.send(createNowPlayingMessage(track));
+
+				if (message) {
+					player.setNowPlayingMessage(message);
+				}
+			});
+
+			this.lavalink.on('queueEnd', (player) => {
+				this.logger.debug('Queue ended for player %s', player.guild);
+
+				if (!player.textChannel) return;
+
+				const channel = this.client.channels.cache.get(player.textChannel) as
+					| TextBasedChannelFields<true>
+					| undefined;
+
+				channel?.send({
+					embeds: [createQueueEndedEmbed()],
+				});
+
+				if (env.BOT_IDLE_AUTO_DISCONNECT) {
+					player.timeout = setTimeout(
+						() => player.destroy(true),
+						env.BOT_IDLE_DISCONNECT_SECONDS * 1_000,
+					);
+				}
+			});
 		});
 	}
 
@@ -117,21 +128,21 @@ export class Bot {
 	 * Attaches event handlers to the Discord client.
 	 */
 	async attachHandlers() {
-		// TODO: move this to a utils file?
-		const files = await glob('./handlers/**/*.ts', {
-			dotRelative: true,
-			cwd: import.meta.dir,
+		const files = await readDir('./handlers/**/*.ts');
+
+		Sentry.withScope((scope) => {
+			scope.setTransactionName('Bot Handlers');
+
+			for (const file of files) {
+				const instance = require(file).default;
+				const handler: Handler<string> = new instance();
+
+				this.client[handler.once ? 'once' : 'on'](
+					handler.event as string,
+					(...args) => handler.listener(this, ...args),
+				);
+			}
 		});
-
-		for (const file of files) {
-			const instance = require(file).default;
-			const handler: Handler<string> = new instance();
-
-			this.client[handler.once ? 'once' : 'on'](
-				handler.event as string,
-				(...args) => handler.listener(this, ...args),
-			);
-		}
 	}
 
 	/**
@@ -140,10 +151,7 @@ export class Bot {
 	 */
 	async registerCommands() {
 		const CACHE_FILENAME = 'registered-commands.json';
-		const files = await glob('./commands/**/*.ts', {
-			dotRelative: true,
-			cwd: import.meta.dir,
-		});
+		const files = await readDir('./commands/**/*.ts');
 
 		const commands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
 
@@ -183,6 +191,7 @@ export class Bot {
 				);
 			}
 		} catch (e) {
+			Sentry.captureException(e);
 			this.logger.error('Commands failed to register: %v', e);
 		}
 	}

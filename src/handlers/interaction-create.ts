@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { ChatInputCommandInteraction, Events, Interaction } from 'discord.js';
 import { Bot } from '~/bot';
 import { Command } from '~/interfaces/command';
@@ -23,6 +24,12 @@ export default class InteractionCreateHandler
 		try {
 			await command.execute(bot, interaction);
 		} catch (e) {
+			Sentry.captureException(e, {
+				tags: {
+					command: interaction.commandName,
+				},
+			});
+
 			bot.logger.error(e);
 			this.reply(interaction, 'Something went wrong. Please try again later.');
 		}
