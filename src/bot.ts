@@ -2,22 +2,21 @@ import {
 	APIApplicationCommand,
 	Client,
 	Collection,
-	Colors,
-	EmbedBuilder,
 	REST,
 	RESTPostAPIChatInputApplicationCommandsJSONBody,
 	Routes,
-	Webhook,
+	TextBasedChannelFields,
 } from 'discord.js';
 import { glob } from 'glob';
 import { Manager } from 'magmastream';
 import { env } from '~/env';
-import { createLavalink } from '~/lib/lavalink';
-import { logger } from '~/lib/logger';
 import { Command } from '~/interfaces/command';
 import { Handler } from '~/interfaces/handler';
+import { createLavalink } from '~/lib/lavalink';
+import { logger } from '~/lib/logger';
+import { createNowPlayingMessage } from '~/messages/now-playing';
+import { createQueueEndedEmbed } from '~/messages/queue-ended';
 import { createCache, isCached } from '~/utils/cache';
-import { formatDuration } from '~/utils/formatting';
 
 export class Bot {
 	public commands = new Collection<string, Command>();
@@ -48,7 +47,12 @@ export class Bot {
 	 */
 	async destroy() {
 		this.logger.info('Shutting down...');
-		this.lavalink.players.forEach((player) => player.destroy(true));
+		this.client.user?.setStatus('invisible');
+		this.lavalink.players.forEach((player) => {
+			this.logger.debug('Destroying player %s', player.guild);
+			player.destroy(true);
+		});
+		this.logger.debug('Destroying client');
 		await this.client.destroy();
 		this.logger.info('Goodbye!');
 	}
@@ -74,43 +78,39 @@ export class Bot {
 		});
 
 		this.lavalink.on('trackStart', async (player, track) => {
+			clearTimeout(player.timeout);
+
 			if (!player.textChannel) return;
 
-			const channel = this.client.channels.cache.get(
-				player.textChannel,
-			) as unknown as Webhook;
+			const channel = this.client.channels.cache.get(player.textChannel) as
+				| TextBasedChannelFields<true>
+				| undefined;
 
-			const message = await channel.send({
-				embeds: [
-					new EmbedBuilder()
-						.setColor(Colors.Green)
-						.setAuthor({ name: 'Now playing' })
-						.setTitle(track.title)
-						.setURL(track.uri)
-						.setImage(track.artworkUrl)
-						.addFields(
-							{ name: 'Uploaded', value: track.author, inline: true },
-							{
-								name: 'Duration',
-								value: `\`${formatDuration(track.duration)}\``,
-								inline: true,
-							},
-							{
-								name: 'Requested by',
-								value: `${track.requester}`,
-								inline: true,
-							},
-						)
-						.setFooter({
-							text: `${player.queue.size} tracks in queue`,
-						}),
-				],
-			});
+			const message = await channel?.send(createNowPlayingMessage(track));
 
-			player.setNowPlayingMessage(message);
+			if (message) {
+				player.setNowPlayingMessage(message);
+			}
 		});
 
-		this.lavalink.on('queueEnd', (player) => {});
+		this.lavalink.on('queueEnd', (player) => {
+			if (!player.textChannel) return;
+
+			const channel = this.client.channels.cache.get(player.textChannel) as
+				| TextBasedChannelFields<true>
+				| undefined;
+
+			channel?.send({
+				embeds: [createQueueEndedEmbed()],
+			});
+
+			if (env.BOT_IDLE_AUTO_DISCONNECT) {
+				player.timeout = setTimeout(
+					() => player.destroy(true),
+					env.BOT_IDLE_DISCONNECT_SECONDS * 1_000,
+				);
+			}
+		});
 	}
 
 	/**

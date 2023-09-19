@@ -9,7 +9,7 @@ export function createLavalink(client: Client) {
 				host: env.LAVALINK_HOST,
 				password: env.LAVALINK_PASSWORD,
 				port: env.LAVALINK_PORT,
-				secure: env.LAVALINK_SECURE === 'true',
+				secure: env.LAVALINK_SECURE,
 				identifier: env.LAVALINK_IDENTIFIER,
 				retryDelay: 1_000 * 3,
 			},
@@ -17,7 +17,8 @@ export function createLavalink(client: Client) {
 		send(id, payload) {
 			client.guilds.cache.get(id)?.shard.send(payload);
 		},
+		clientId: env.BOT_CLIENT_ID,
 		clientName: env.BOT_CLIENT_NAME,
-		defaultSearchPlatform: env.DEFAULT_SEARCH_PLATFORM,
+		defaultSearchPlatform: env.BOT_DEFAULT_SEARCH_PLATFORM,
 	});
 }

@@ -24,7 +24,7 @@ export default class InteractionCreateHandler
 			await command.execute(bot, interaction);
 		} catch (e) {
 			bot.logger.error(e);
-			this.reply(interaction, 'An error occurred while executing this command');
+			this.reply(interaction, 'Something went wrong. Please try again later.');
 		}
 	}
 

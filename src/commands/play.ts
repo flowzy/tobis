@@ -1,20 +1,16 @@
 import {
 	ChatInputCommandInteraction,
-	Colors,
 	EmbedBuilder,
 	PermissionsBitField,
 	SlashCommandBuilder,
 } from 'discord.js';
-import {
-	Player,
-	PlaylistData,
-	SearchPlatform,
-	SearchResult,
-	Track,
-} from 'magmastream';
+import { Player, SearchPlatform } from 'magmastream';
 import { Bot } from '~/bot';
 import { Command } from '~/interfaces/command';
-import { formatDuration } from '~/utils/formatting';
+import { createEnqueuedPlaylistEmbed } from '~/messages/enqueued-playlist';
+import { createEnqueuedTrackEmbed } from '~/messages/enqueued-track';
+import { createErrorMessage } from '~/messages/error';
+import { createInfoMessage } from '~/messages/info';
 
 export default class PlayCommand implements Command {
 	data = new SlashCommandBuilder()
@@ -58,7 +54,7 @@ export default class PlayCommand implements Command {
 				guild: interaction.guildId,
 				voiceChannel: interaction.member.voice.channel.id,
 				textChannel: interaction.channelId,
-				volume: 100,
+				volume: 50,
 				selfDeafen: true,
 			});
 		} catch (e) {
@@ -93,112 +89,46 @@ export default class PlayCommand implements Command {
 		);
 
 		if (result.loadType === 'error') {
-			return interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor(Colors.Red)
-						.setAuthor({
-							name: 'Play',
-							iconURL:
-								'https://cdn.darrennathanael.com/icons/spinning_disk.gif',
-						})
-						.setDescription('An error occurred while searching'),
-				],
-			});
+			return interaction.editReply(
+				createErrorMessage({
+					message: 'Something went wrong... Please try again later',
+				}),
+			);
 		}
 
 		if (result.loadType === 'empty') {
-			return interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setAuthor({ name: 'Play' })
-						.setDescription('No results found'),
-				],
-			});
+			return interaction.editReply(
+				createInfoMessage({
+					title: 'No results found',
+					message: 'Try a different search term or URL',
+				}),
+			);
 		}
 
-		if (result.loadType === 'search') {
-			return this.displaySelect(interaction, result);
-		}
-
-		let embed = new EmbedBuilder()
-			.setColor(Colors.Blurple)
-			.setAuthor({ name: 'Added to queue' });
+		let embed: EmbedBuilder;
 
 		switch (result.loadType) {
+			case 'search':
 			case 'track':
 				const track = result.tracks.at(0)!;
 				player.queue.add(track);
-				embed = this.getTrackEmbed(embed, track);
+				embed = createEnqueuedTrackEmbed(track, player.queue);
 				break;
 
 			case 'playlist':
 				const playlist = result.playlist!;
 				player.queue.add(playlist.tracks);
-				embed = this.getPlaylistEmbed(embed, playlist);
+				embed = createEnqueuedPlaylistEmbed(playlist, query, player.queue);
 				break;
 		}
 
 		player.connect();
-
-		if (!player.playing && !player.paused && !player.queue.size) {
+		if (!player.playing && !player.paused && player.queue.totalSize) {
 			player.play();
 		}
 
-		interaction.editReply({
+		return interaction.editReply({
 			embeds: [embed],
 		});
-	}
-
-	displaySelect(
-		interaction: ChatInputCommandInteraction,
-		result: SearchResult,
-	) {
-		return interaction.reply(
-			'Search is not implemented yet. Enter a URL instead.',
-		);
-	}
-
-	getTrackEmbed(embed: EmbedBuilder, track: Track) {
-		return embed
-			.setTitle(track.title)
-			.setURL(track.uri)
-			.setThumbnail(track.thumbnail)
-			.addFields(
-				{ name: 'Uploaded', value: track.author, inline: true },
-				{
-					name: 'Duration',
-					value: track.isStream
-						? '🔴 LIVE'
-						: `\`${formatDuration(track.duration)}\``,
-					inline: true,
-				},
-				{ name: 'Requested by', value: `${track.requester}`, inline: true },
-			);
-	}
-
-	getPlaylistEmbed(embed: EmbedBuilder, playlist: PlaylistData) {
-		const firstTrack = playlist.tracks.at(0)!;
-
-		return embed
-			.setTitle(playlist.name)
-			.addFields([
-				{
-					name: 'Tracks',
-					value: `\`${playlist.tracks.length}\``,
-					inline: true,
-				},
-				{
-					name: 'Duration',
-					value: `\`${formatDuration(playlist.duration)}\``,
-					inline: true,
-				},
-				{
-					name: 'Requested by',
-					value: `${firstTrack.requester}`,
-					inline: true,
-				},
-			])
-			.setThumbnail(firstTrack.thumbnail);
 	}
 }

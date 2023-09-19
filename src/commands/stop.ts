@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { Bot } from '~/bot';
 import { Command } from '~/interfaces/command';
+import { createInfoMessage } from '~/messages/info';
 
 export default class StopCommand implements Command {
 	data = new SlashCommandBuilder()
@@ -11,15 +12,14 @@ export default class StopCommand implements Command {
 		const player = bot.lavalink.players.get(interaction.guild.id);
 
 		if (!player) {
-			return interaction.reply({
-				content: 'There is no music playing',
-				ephemeral: true,
-			});
+			return interaction.reply(
+				createInfoMessage({
+					message: 'I am not connected to a voice channel.',
+					ephemeral: true,
+				}),
+			);
 		}
 
-		player.destroy();
-		player.queue.clear();
-
-		interaction.reply('Music has been stopped');
+		player.destroy(true);
 	}
 }
