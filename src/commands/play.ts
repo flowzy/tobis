@@ -88,18 +88,20 @@ export default class PlayCommand implements Command {
 			return this.#prompt(bot, interaction, result);
 		}
 
-		player.queue.add(result.playlist?.tracks ?? result.tracks);
-
 		let embed: EmbedBuilder;
 
 		switch (result.loadType) {
 			case 'track':
 				const track = result.tracks.at(0)!;
+				player.queue.add(result.tracks);
+
 				embed = createEnqueuedTrackEmbed(track, player.queue);
 				break;
 
 			case 'playlist':
 				const playlist = result.playlist!;
+				player.queue.add(playlist.tracks);
+
 				embed = createEnqueuedPlaylistEmbed(playlist, query, player.queue);
 				break;
 		}
