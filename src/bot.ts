@@ -25,7 +25,7 @@ export class Bot {
 	public lavalink: Manager;
 	public logger = logger;
 
-	constructor(public readonly client: Client) {
+	constructor(public readonly client: Client<true>) {
 		this.lavalink = createLavalink(this.client);
 
 		this.setup().then(() => {
@@ -52,6 +52,7 @@ export class Bot {
 		this.lavalink.players.forEach((player) => {
 			this.logger.debug('Destroying player %s', player.guild);
 			player.destroy(true);
+			player.nowPlayingMessage?.delete();
 		});
 		this.logger.debug('Destroying client');
 		await this.client.destroy();
@@ -76,7 +77,7 @@ export class Bot {
 			this.lavalink.on('nodeError', (node, error) => {
 				Sentry.captureException(error);
 
-				this.logger.info(
+				this.logger.error(
 					'Lavalink node "%s" encountered an error: %s',
 					node.options.identifier,
 					error.message,
@@ -86,7 +87,7 @@ export class Bot {
 			this.lavalink.on('trackStart', async (player, track) => {
 				clearTimeout(player.timeout);
 
-				this.logger.debug('Started playing track %s', track.title);
+				this.logger.debug('Started play in %s', player.guild);
 
 				if (!player.textChannel) return;
 

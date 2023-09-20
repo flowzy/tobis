@@ -1,17 +1,22 @@
 import * as Sentry from '@sentry/node';
 import {
+	ActionRowBuilder,
 	ChatInputCommandInteraction,
+	ComponentType,
 	EmbedBuilder,
 	PermissionsBitField,
 	SlashCommandBuilder,
+	StringSelectMenuBuilder,
+	StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { Player, SearchPlatform } from 'magmastream';
+import { Player, SearchPlatform, SearchResult } from 'magmastream';
 import { Bot } from '~/bot';
 import { Command } from '~/interfaces/command';
 import { createEnqueuedPlaylistEmbed } from '~/messages/enqueued-playlist';
 import { createEnqueuedTrackEmbed } from '~/messages/enqueued-track';
 import { createErrorMessage } from '~/messages/error';
 import { createInfoMessage } from '~/messages/info';
+import { formatDuration } from '~/utils/format';
 
 export default class PlayCommand implements Command {
 	data = new SlashCommandBuilder()
@@ -41,43 +46,10 @@ export default class PlayCommand implements Command {
 	];
 
 	async execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
-		if (!interaction.member.voice.channel) {
-			return interaction.reply({
-				content: 'You must join a voice channel to use this command.',
-				ephemeral: true,
-			});
-		}
+		const player = await this.#createPlayer(bot, interaction);
 
-		let player: Player;
-
-		try {
-			player = bot.lavalink.create({
-				guild: interaction.guild.id,
-				voiceChannel: interaction.member.voice.channel.id,
-				textChannel: interaction.channelId,
-				volume: 50,
-				selfDeafen: true,
-			});
-		} catch (e) {
-			Sentry.captureException(e, {
-				tags: {
-					command: 'play',
-				},
-			});
-
-			bot.logger.error(e);
-
-			return interaction.reply({
-				content: 'Music player is not ready yet. Try again later.',
-				ephemeral: true,
-			});
-		}
-
-		if (player.voiceChannel !== interaction.member.voice.channel.id) {
-			return interaction.reply({
-				content: `You must be in the same voice channel as me - <#${player.voiceChannel}>`,
-				ephemeral: true,
-			});
+		if (!player) {
+			return;
 		}
 
 		if (!interaction.deferred) {
@@ -96,18 +68,6 @@ export default class PlayCommand implements Command {
 		);
 
 		if (result.loadType === 'error') {
-			Sentry.captureException(result, {
-				tags: {
-					command: 'play',
-				},
-				extra: {
-					query,
-					source,
-				},
-			});
-
-			bot.logger.debug('Result failed to load:', result);
-
 			return interaction.editReply(
 				createErrorMessage({
 					message: 'Something went wrong... Please try again later',
@@ -124,30 +84,153 @@ export default class PlayCommand implements Command {
 			);
 		}
 
+		if (result.loadType === 'search') {
+			return this.#prompt(bot, interaction, result);
+		}
+
+		player.queue.add(result.playlist?.tracks ?? result.tracks);
+
 		let embed: EmbedBuilder;
 
 		switch (result.loadType) {
-			case 'search':
 			case 'track':
 				const track = result.tracks.at(0)!;
-				player.queue.add(track);
 				embed = createEnqueuedTrackEmbed(track, player.queue);
 				break;
 
 			case 'playlist':
 				const playlist = result.playlist!;
-				player.queue.add(playlist.tracks);
 				embed = createEnqueuedPlaylistEmbed(playlist, query, player.queue);
 				break;
-		}
-
-		player.connect();
-		if (!player.playing && !player.paused && player.queue.totalSize) {
-			player.play();
 		}
 
 		return interaction.editReply({
 			embeds: [embed],
 		});
+	}
+
+	async #createPlayer(
+		bot: Bot,
+		interaction: ChatInputCommandInteraction<'cached'>,
+	): Promise<Player | undefined> {
+		if (!interaction.member.voice.channel) {
+			await interaction.reply({
+				content: 'You must join a voice channel to use this command.',
+				ephemeral: true,
+			});
+
+			return;
+		}
+
+		let player: Player;
+
+		try {
+			player = bot.lavalink.create({
+				guild: interaction.guild.id,
+				voiceChannel: interaction.member.voice.channel.id,
+				textChannel: interaction.channelId,
+				selfDeafen: true,
+				volume: 50,
+			});
+		} catch (e) {
+			Sentry.captureException(e, {
+				tags: {
+					command: 'play',
+				},
+			});
+
+			bot.logger.error(e);
+
+			await interaction.reply({
+				content: 'Music player is not ready yet. Try again later.',
+				ephemeral: true,
+			});
+
+			return;
+		}
+
+		if (player.voiceChannel !== interaction.member.voice.channel.id) {
+			await interaction.reply({
+				content: `You must be in the same voice channel as me - <#${player.voiceChannel}>`,
+				ephemeral: true,
+			});
+
+			return;
+		}
+
+		return player;
+	}
+
+	async #play(player: Player) {
+		player.connect();
+
+		if (!player.playing && !player.paused && player.queue.totalSize) {
+			player.play();
+		}
+	}
+
+	/**
+	 * Prompt the user to select a track from the search results.
+	 * @param bot
+	 * @param interaction
+	 * @param result
+	 * @returns
+	 */
+	async #prompt(
+		bot: Bot,
+		interaction: ChatInputCommandInteraction<'cached'>,
+		result: SearchResult,
+	) {
+		const select = new StringSelectMenuBuilder()
+			.setCustomId('track-select')
+			.setPlaceholder('Select a track to play');
+
+		const options = result.tracks.map((track, index) => {
+			return new StringSelectMenuOptionBuilder()
+				.setLabel(track.title)
+				.setDescription(`${formatDuration(track.duration)} • ${track.author}`)
+				.setValue(index.toString());
+		});
+
+		select.addOptions(...options);
+
+		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+			select,
+		);
+
+		const prompt = await interaction.editReply({
+			components: [row],
+		});
+
+		const PROMPT_DISPLAY_TIME_SECONDS = 45;
+
+		try {
+			const confirmation =
+				await prompt.awaitMessageComponent<ComponentType.StringSelect>({
+					filter: (i) => i.user.id === interaction.user.id,
+					time: PROMPT_DISPLAY_TIME_SECONDS * 1_000,
+				});
+
+			const trackIndex = Number(confirmation.values.at(0));
+			const track = result.tracks.at(trackIndex)!;
+			const player = await this.#createPlayer(bot, interaction);
+
+			if (!player) {
+				return;
+			}
+
+			player.queue.add(track);
+
+			const embed = createEnqueuedTrackEmbed(track, player.queue);
+
+			await confirmation.update({
+				embeds: [embed],
+				components: [],
+			});
+
+			await this.#play(player);
+		} catch {
+			await prompt.delete();
+		}
 	}
 }
