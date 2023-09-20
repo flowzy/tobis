@@ -4,7 +4,7 @@ import { Bot } from '~/bot';
 import { env } from '~/env';
 
 Sentry.init({
-	enabled: process.env.NODE_ENV === 'production' && Boolean(env.SENTRY_DSN),
+	enabled: env.NODE_ENV === 'production' && Boolean(env.SENTRY_DSN),
 	dsn: env.SENTRY_DSN,
 	tracesSampleRate: 1,
 });

@@ -3,6 +3,10 @@ import { z } from 'zod';
 
 export const env = createEnv({
 	server: {
+		NODE_ENV: z
+			.union([z.literal('development'), z.literal('production')])
+			.default('development'),
+
 		BOT_NAME: z.string().optional(),
 		BOT_TOKEN: z.string().min(1),
 		BOT_CLIENT_ID: z.string().min(1),

@@ -26,6 +26,7 @@ export class Bot {
 	public logger = logger;
 
 	constructor(public readonly client: Client<true>) {
+		this.logger.info('Launching in %s mode...', env.NODE_ENV);
 		this.lavalink = createLavalink(this.client);
 
 		this.setup().then(() => {
