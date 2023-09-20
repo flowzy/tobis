@@ -3,9 +3,9 @@ import { z } from 'zod';
 
 export const env = createEnv({
 	server: {
+		BOT_NAME: z.string().optional(),
 		BOT_TOKEN: z.string().min(1),
 		BOT_CLIENT_ID: z.string().min(1),
-		BOT_CLIENT_NAME: z.string().optional(),
 
 		BOT_IDLE_AUTO_DISCONNECT: z
 			.union([z.literal('true'), z.literal('false')])

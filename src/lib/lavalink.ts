@@ -18,7 +18,7 @@ export function createLavalink(client: Client) {
 			client.guilds.cache.get(id)?.shard.send(payload);
 		},
 		clientId: env.BOT_CLIENT_ID,
-		clientName: env.BOT_CLIENT_NAME,
+		clientName: env.BOT_NAME,
 		defaultSearchPlatform: env.BOT_DEFAULT_SEARCH_PLATFORM,
 	});
 }
