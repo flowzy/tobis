@@ -212,7 +212,7 @@ export default class PlayCommand implements Command {
 				});
 
 			const trackIndex = Number(confirmation.values.at(0));
-			const track = result.tracks.at(trackIndex)!;
+			const track = result.tracks.at(Number(trackIndex))!;
 			const player = await this.#createPlayer(bot, interaction);
 
 			if (!player) {

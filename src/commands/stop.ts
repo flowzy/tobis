@@ -8,18 +8,26 @@ export default class StopCommand implements Command {
 		.setName('stop')
 		.setDescription('Disconnect from the voice channel and clear queue');
 
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	async execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
 		const player = bot.lavalink.players.get(interaction.guild.id);
 
 		if (!player) {
+			// TODO: fix type error
 			return interaction.reply(
 				createInfoMessage({
-					message: 'I am not connected to a voice channel.',
+					message: 'I am not connected to a voice channel',
 					ephemeral: true,
 				}),
 			);
 		}
 
 		player.destroy(true);
+		await player.nowPlayingMessage?.delete();
+
+		return interaction.reply(
+			createInfoMessage({
+				message: 'Disconnected from voice channel and cleared queue',
+			}),
+		);
 	}
 }
