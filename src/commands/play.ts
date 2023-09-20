@@ -52,7 +52,7 @@ export default class PlayCommand implements Command {
 
 		try {
 			player = bot.lavalink.create({
-				guild: interaction.guildId,
+				guild: interaction.guild.id,
 				voiceChannel: interaction.member.voice.channel.id,
 				textChannel: interaction.channelId,
 				volume: 50,
@@ -68,7 +68,7 @@ export default class PlayCommand implements Command {
 			bot.logger.error(e);
 
 			return interaction.reply({
-				content: 'Music player is not ready yet. Try again later!',
+				content: 'Music player is not ready yet. Try again later.',
 				ephemeral: true,
 			});
 		}
@@ -105,6 +105,8 @@ export default class PlayCommand implements Command {
 					source,
 				},
 			});
+
+			bot.logger.debug('Result failed to load:', result);
 
 			return interaction.editReply(
 				createErrorMessage({

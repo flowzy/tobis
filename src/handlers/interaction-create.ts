@@ -21,6 +21,16 @@ export default class InteractionCreateHandler
 			return this.reply(interaction, 'Unknown command');
 		}
 
+		if (
+			command.permissions &&
+			!interaction.memberPermissions?.has(command.permissions)
+		) {
+			return this.reply(
+				interaction,
+				'You do not have permission to use this command',
+			);
+		}
+
 		try {
 			await command.execute(bot, interaction);
 		} catch (e) {
