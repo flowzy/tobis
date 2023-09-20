@@ -1,10 +1,23 @@
 # Tobis
 
-## Prerequisites
+Tobis is a Discord music bot implementation, written in TypeScript.\
+It uses [Docker](https://www.docker.com/), [Bun](https://bun.sh), [discord.js](https://discordjs.guide/), [Lavalink](https://github.com/lavalink-devs/Lavalink), and [Sentry](https://sentry.io/).
 
-- [Docker Engine](https://docs.docker.com/engine/)
+The bot currently does not support [sharding](https://discord.com/developers/docs/topics/gateway#sharding).
+
+## Available commands
+
+- `/play` - Play a song
+- `/skip` - Skip the current song
+- `/stop` - Stop the music
+- `/ping` - Measures the latency
 
 ## Getting started
+
+### Prerequisites
+
+- [Docker Engine](https://docs.docker.com/engine/)
+- [Make](https://www.gnu.org/software/make/)
 
 ### Set up environment variables
 
@@ -12,26 +25,34 @@
 cp .env.example .env
 ```
 
-Then you will need to find your application token and client ID, and put those values inside the `.env` file.
+### Running the bot
 
-#### Application Token
-
-1. Open [Discord Developer Portal -> Applications](https://discord.com/developers/applications/)
-2. Create a new application or open an existing one
-3. Go to "Bot" section
-4. Press "Reset Token" if you don't already have it saved
-
-#### Client ID
-
-1. Open [Discord Developer Portal -> Applications](https://discord.com/developers/applications/)
-2. Open the same application you did before
-3. Go to "OAuth2" section
-4. Press "Copy" under "CLIENT ID"
-
-### Launch the application
+#### Development
 
 ```bash
-docker compose up -d
+make dev
 ```
 
-This will install the dependencies and launch the entire application in the background.
+Launches the bot in development mode. It will automatically restart when you make changes to the source code.
+
+#### Production
+
+```bash
+make prod
+```
+
+Launches the bot in production mode.
+
+### Shutting down the bot
+
+```bash
+make stop
+```
+
+### Registering commands
+
+All commands get automatically registered upon startup.
+
+This happens only when there is no cache, or when the cache is outdated. This makes it easy to update the commands and not worry about spamming the Discord API.
+
+To clear the file-system cache, run `make clear-cache`.
