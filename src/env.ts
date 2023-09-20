@@ -5,7 +5,7 @@ export const env = createEnv({
 	server: {
 		BOT_TOKEN: z.string().min(1),
 		BOT_CLIENT_ID: z.string().min(1),
-		BOT_CLIENT_NAME: z.string(),
+		BOT_CLIENT_NAME: z.string().optional(),
 
 		BOT_IDLE_AUTO_DISCONNECT: z
 			.union([z.literal('true'), z.literal('false')])
@@ -27,9 +27,9 @@ export const env = createEnv({
 			.default('false')
 			.transform((value) => value === 'true'),
 		LAVALINK_PASSWORD: z.string().min(1),
-		LAVALINK_IDENTIFIER: z.string(),
+		LAVALINK_IDENTIFIER: z.string().optional(),
 
-		SENTRY_DSN: z.string(),
+		SENTRY_DSN: z.string().optional(),
 	},
 	runtimeEnv: process.env,
 });

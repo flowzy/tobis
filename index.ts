@@ -1,15 +1,12 @@
 import * as Sentry from '@sentry/node';
-import { ProfilingIntegration } from '@sentry/profiling-node';
 import { ActivityType, Client, GatewayIntentBits } from 'discord.js';
 import { Bot } from '~/bot';
 import { env } from '~/env';
 
 Sentry.init({
-	enabled: env.SENTRY_DSN.length > 0,
+	enabled: process.env.NODE_ENV === 'production' && Boolean(env.SENTRY_DSN),
 	dsn: env.SENTRY_DSN,
-	integrations: [new ProfilingIntegration()],
-	tracesSampleRate: Bun.env.NODE_ENV === 'production' ? 0.5 : 1,
-	profilesSampleRate: 0.5,
+	tracesSampleRate: 1,
 });
 
 const bot = new Bot(
