@@ -7,10 +7,13 @@ The bot currently does not support [sharding](https://discord.com/developers/doc
 
 ## Available commands
 
-- `/play` - Play a song
-- `/skip` - Skip the current song
-- `/stop` - Stop the music
-- `/ping` - Measures the latency
+| Command   | Description           |
+| --------- | --------------------- |
+| `/play`   | Play a song           |
+| `/skip`   | Skip the current song |
+| `/stop`   | Stop the music        |
+| `/ping`   | Measures the latency  |
+| `/uptime` | Reports the uptime    |
 
 ## Getting started
 
