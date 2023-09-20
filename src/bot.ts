@@ -48,14 +48,20 @@ export class Bot {
 	 */
 	async destroy() {
 		this.logger.info('Shutting down...');
+
 		this.client.user?.setStatus('invisible');
-		this.lavalink.players.forEach((player) => {
-			this.logger.debug('Destroying player %s', player.guild);
-			player.destroy(true);
-			player.nowPlayingMessage?.delete();
-		});
-		this.logger.debug('Destroying client');
+
+		this.logger.debug('Destroying %d players...', this.lavalink.players.size);
+		await Promise.allSettled(
+			this.lavalink.players.map(async (player) => {
+				await player.nowPlayingMessage?.delete();
+				player.destroy(true);
+			}),
+		);
+
+		this.logger.debug('Destroying client...');
 		await this.client.destroy();
+
 		this.logger.info('Goodbye!');
 	}
 
