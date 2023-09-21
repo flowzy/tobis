@@ -34,6 +34,7 @@ The bot currently does not support [sharding](https://discord.com/developers/doc
 | `/stop`   | Stop the music        |
 | `/ping`   | Measure the latency   |
 | `/uptime` | Report the uptime     |
+| `/queue`  | Get current queue     |
 
 ## Getting started
 
