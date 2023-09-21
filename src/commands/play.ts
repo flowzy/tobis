@@ -106,6 +106,8 @@ export default class PlayCommand implements Command {
 				break;
 		}
 
+		await this.#play(player);
+
 		return interaction.editReply({
 			embeds: [embed],
 		});
@@ -167,7 +169,7 @@ export default class PlayCommand implements Command {
 		player.connect();
 
 		if (!player.playing && !player.paused && player.queue.totalSize) {
-			player.play();
+			await player.play();
 		}
 	}
 
