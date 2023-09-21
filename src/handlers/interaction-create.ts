@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/bun';
 import { ChatInputCommandInteraction, Events, Interaction } from 'discord.js';
 import { Bot } from '~/bot';
+import { env } from '~/env';
 import { Command } from '~/interfaces/command';
 import { Handler } from '~/interfaces/handler';
 
@@ -11,6 +12,16 @@ export default class InteractionCreateHandler
 
 	async listener(bot: Bot, interaction: Interaction) {
 		if (!interaction.isChatInputCommand()) return;
+
+		if (
+			env.NODE_ENV === 'development' &&
+			env.BOT_OWNER_ID !== interaction.user.id
+		) {
+			return interaction.reply({
+				content: 'You are not allowed to use this bot in development mode',
+				ephemeral: true,
+			});
+		}
 
 		const command: Command | undefined = bot.commands.get(
 			interaction.commandName,
