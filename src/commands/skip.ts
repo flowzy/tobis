@@ -4,7 +4,7 @@ import { isInSameVoiceChannel, isInVoiceChannel } from '~/helpers/interaction';
 import { getExistingPlayer } from '~/helpers/player';
 import { Command } from '~/interfaces/command';
 
-export default class PlayCommand implements Command {
+export default class SkipCommand implements Command {
 	data = new SlashCommandBuilder()
 		.setName('skip')
 		.setDescription('Skips the current track');

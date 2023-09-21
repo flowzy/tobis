@@ -3,7 +3,7 @@ import { Bot } from '~/bot';
 import { getExistingPlayer } from '~/helpers/player';
 import { Command } from '~/interfaces/command';
 
-export default class QueueCommand implements Command {
+export default class RemoveCommand implements Command {
 	public data = new SlashCommandBuilder()
 		.setName('remove')
 		.setDescription('Remove track from queue')
