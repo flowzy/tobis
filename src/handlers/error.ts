@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/bun';
 import { Events } from 'discord.js';
 import { Bot } from '~/bot';
 import { Handler } from '~/interfaces/handler';

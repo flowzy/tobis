@@ -1,24 +1,26 @@
 {
-  "name": "tobis",
-  "module": "index.ts",
-  "type": "module",
-  "devDependencies": {
-    "@typescript-eslint/parser": "^6.7.0",
-    "bun-types": "latest",
-    "eslint": "^8.49.0",
-    "prettier": "^3.0.3"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@sentry/node": "^7.69.0",
-    "@t3-oss/env-core": "^0.6.1",
-    "discord.js": "^14.13.0",
-    "glob": "^10.3.4",
-    "magmastream": "^2.2.3",
-    "pretty-ms": "^8.0.0",
-    "winston": "^3.10.0",
-    "zod": "^3.22.2"
-  }
+	"name": "tobis",
+	"module": "index.ts",
+	"type": "module",
+	"scripts": {
+		"start": "bun run index.ts",
+		"check": "tsc"
+	},
+	"devDependencies": {
+		"@typescript-eslint/parser": "^6.7.0",
+		"bun-types": "latest",
+		"eslint": "^8.49.0",
+		"prettier": "^3.0.3",
+		"typescript": "^5.2.2"
+	},
+	"dependencies": {
+		"@sentry/bun": "^7.70.0",
+		"@t3-oss/env-core": "^0.6.1",
+		"discord.js": "^14.13.0",
+		"glob": "^10.3.4",
+		"magmastream": "^2.2.3",
+		"pretty-ms": "^8.0.0",
+		"winston": "^3.10.0",
+		"zod": "^3.22.2"
+	}
 }

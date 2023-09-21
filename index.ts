@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/bun';
 import { ActivityType, Client, GatewayIntentBits } from 'discord.js';
 import { Bot } from '~/bot';
 import { env } from '~/env';
@@ -19,23 +19,25 @@ const bot = new Bot(
 );
 
 let isShuttingDown = false;
-['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGQUIT'].forEach((signal) => {
-	process.on(signal, async () => {
-		if (isShuttingDown) return;
-		isShuttingDown = true;
+['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGQUIT', 'beforeExit', 'exit'].forEach(
+	(signal) => {
+		process.on(signal, async () => {
+			if (isShuttingDown) return;
+			isShuttingDown = true;
 
-		try {
-			await bot.destroy();
-			process.exit(0);
-		} catch (e) {
-			Sentry.captureException(e, {
-				tags: {
-					signal,
-				},
-			});
+			try {
+				await bot.destroy();
+				process.exit(0);
+			} catch (e) {
+				Sentry.captureException(e, {
+					extra: {
+						signal,
+					},
+				});
 
-			console.error('Failed to gracefully shut down.', e);
-			process.exit(1);
-		}
-	});
-});
+				console.error('Failed to gracefully shut down.', e);
+				process.exit(1);
+			}
+		});
+	},
+);

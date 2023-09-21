@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/bun';
 import {
 	ActionRowBuilder,
 	ChatInputCommandInteraction,
@@ -138,7 +138,7 @@ export default class PlayCommand implements Command {
 			});
 		} catch (e) {
 			Sentry.captureException(e, {
-				tags: {
+				extra: {
 					command: 'play',
 				},
 			});

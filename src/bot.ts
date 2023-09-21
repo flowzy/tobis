@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/bun';
 import {
 	APIApplicationCommand,
 	Client,
@@ -26,7 +26,11 @@ export class Bot {
 	public logger = logger;
 
 	constructor(public readonly client: Client<true>) {
-		this.logger.info('Launching in %s mode...', env.NODE_ENV);
+		this.logger.info(
+			'Launching in %s mode... (Bun v%s)',
+			env.NODE_ENV,
+			Bun.version,
+		);
 		this.lavalink = createLavalink(this.client);
 
 		this.setup().then(() => {
@@ -59,6 +63,10 @@ export class Bot {
 				player.destroy(true);
 			}),
 		);
+
+		if (env.LAVALINK_IDENTIFIER) {
+			this.lavalink.destroyNode(env.LAVALINK_IDENTIFIER);
+		}
 
 		this.logger.debug('Destroying client...');
 		await this.client.destroy();

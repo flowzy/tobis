@@ -11,7 +11,7 @@ export function createLavalink(client: Client) {
 				port: env.LAVALINK_PORT,
 				secure: env.LAVALINK_SECURE,
 				identifier: env.LAVALINK_IDENTIFIER,
-				retryDelay: 1_000 * 3,
+				retryDelay: 1_000 * 5,
 			},
 		],
 		send(id, payload) {

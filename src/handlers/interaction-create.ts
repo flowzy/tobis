@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/bun';
 import { ChatInputCommandInteraction, Events, Interaction } from 'discord.js';
 import { Bot } from '~/bot';
 import { Command } from '~/interfaces/command';
@@ -35,7 +35,7 @@ export default class InteractionCreateHandler
 			await command.execute(bot, interaction);
 		} catch (e) {
 			Sentry.captureException(e, {
-				tags: {
+				extra: {
 					command: interaction.commandName,
 				},
 			});
