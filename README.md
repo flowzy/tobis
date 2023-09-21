@@ -27,14 +27,18 @@ The bot currently does not support [sharding](https://discord.com/developers/doc
 
 ## Available commands
 
-| Command   | Description           |
-| --------- | --------------------- |
-| `/play`   | Play a song           |
-| `/skip`   | Skip the current song |
-| `/stop`   | Stop the music        |
-| `/ping`   | Measure the latency   |
-| `/uptime` | Report the uptime     |
-| `/queue`  | Get current queue     |
+| Command   | Description             |
+| --------- | ----------------------- |
+| `/play`   | Play a song             |
+| `/skip`   | Skip the current song   |
+| `/stop`   | Stop the music          |
+| `/ping`   | Measure the latency     |
+| `/uptime` | Report the uptime       |
+| `/queue`  | See queue               |
+| `/pause`  | Pause track             |
+| `/resume` | Resume track            |
+| `/clear`  | Clear queue             |
+| `/remove` | Remove track from queue |
 
 ## Getting started
 
