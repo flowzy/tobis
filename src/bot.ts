@@ -72,15 +72,26 @@ async function attachListeners(bot: Bot) {
 	for (const file of files) {
 		const listener: Listener<any> = require(file).default;
 		const type = listener.once ? 'once' : 'on';
+		const target = clientFiles.includes(file) ? 'client' : 'lavalink';
 
-		if (clientFiles.includes(file)) {
-			bot.client[type](listener.event, (...args) =>
-				listener.execute(bot, ...args),
-			);
+		const wrappedExecute = (...args: any[]) => {
+			try {
+				listener.execute(bot, ...args);
+			} catch (e) {
+				Sentry.captureException(e, {
+					extra: {
+						event: listener.event,
+						target,
+						type,
+					},
+				});
+			}
+		};
+
+		if (target === 'client') {
+			bot.client[type](listener.event, wrappedExecute);
 		} else {
-			bot.lavalink[type](listener.event, (...args) =>
-				listener.execute(bot, ...args),
-			);
+			bot.lavalink[type](listener.event, wrappedExecute);
 		}
 	}
 }
