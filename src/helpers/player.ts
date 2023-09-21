@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/bun';
 import { ChatInputCommandInteraction } from 'discord.js';
 import { Player } from 'magmastream';
-import { Bot } from '~/bot';
+import { Bot } from '~/interfaces/bot';
 import { env } from '~/env';
 import { isInSameVoiceChannel, isInVoiceChannel } from './interaction';
 

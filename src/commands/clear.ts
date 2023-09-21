@@ -1,15 +1,14 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Bot } from '~/bot';
+import { SlashCommandBuilder } from 'discord.js';
+import { createCommand } from '~/factories/command';
 import { isInVoiceChannel } from '~/helpers/interaction';
 import { getExistingPlayer } from '~/helpers/player';
-import { Command } from '~/interfaces/command';
 
-export default class ClearCommand implements Command {
-	public data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('clear')
-		.setDescription('Clear queue');
+		.setDescription('Clear queue'),
 
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	execute(bot, interaction) {
 		if (!isInVoiceChannel(interaction)) {
 			return;
 		}
@@ -25,5 +24,5 @@ export default class ClearCommand implements Command {
 		interaction.reply({
 			content: 'Queue cleared.',
 		});
-	}
-}
+	},
+});

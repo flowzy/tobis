@@ -9,17 +9,17 @@ import {
 	StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { SearchPlatform, SearchResult } from 'magmastream';
-import { Bot } from '~/bot';
+import { createCommand } from '~/factories/command';
 import { createPlayer, startPlaying } from '~/helpers/player';
-import { Command } from '~/interfaces/command';
+import { Bot } from '~/interfaces/bot';
 import { createEnqueuedPlaylistEmbed } from '~/messages/enqueued-playlist';
 import { createEnqueuedTrackEmbed } from '~/messages/enqueued-track';
 import { createErrorMessage } from '~/messages/error';
 import { createInfoMessage } from '~/messages/info';
 import { formatDuration } from '~/utils/format';
 
-export default class PlayCommand implements Command {
-	data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('play')
 		.setDescription('Enqueue a track to play')
 		.addStringOption((option) =>
@@ -38,14 +38,14 @@ export default class PlayCommand implements Command {
 					{ name: 'Soundcloud', value: 'soundcloud' as SearchPlatform },
 					{ name: 'Deezer', value: 'deezer' as SearchPlatform },
 				),
-		);
+		),
 
-	permissions = [
+	permissions: [
 		PermissionsBitField.Flags.Connect,
 		PermissionsBitField.Flags.Speak,
-	];
+	],
 
-	async execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	async execute(bot, interaction) {
 		const player = createPlayer(bot, interaction);
 
 		if (!player) {
@@ -85,7 +85,7 @@ export default class PlayCommand implements Command {
 		}
 
 		if (result.loadType === 'search') {
-			return this.#prompt(bot, interaction, result);
+			return prompt(bot, interaction, result);
 		}
 
 		let embed: EmbedBuilder;
@@ -111,70 +111,70 @@ export default class PlayCommand implements Command {
 		interaction.editReply({
 			embeds: [embed],
 		});
-	}
+	},
+});
 
-	/**
-	 * Prompt the user to select a track from the search results.
-	 * @param bot
-	 * @param interaction
-	 * @param result
-	 * @returns
-	 */
-	async #prompt(
-		bot: Bot,
-		interaction: ChatInputCommandInteraction<'cached'>,
-		result: SearchResult,
-	) {
-		const select = new StringSelectMenuBuilder()
-			.setCustomId('track-select')
-			.setPlaceholder('Select a track to play');
+/**
+ * Prompt the user to select a track from the search results.
+ * @param bot
+ * @param interaction
+ * @param result
+ * @returns
+ */
+async function prompt(
+	bot: Bot,
+	interaction: ChatInputCommandInteraction<'cached'>,
+	result: SearchResult,
+) {
+	const select = new StringSelectMenuBuilder()
+		.setCustomId('track-select')
+		.setPlaceholder('Select a track to play');
 
-		const options = result.tracks.map((track, index) => {
-			return new StringSelectMenuOptionBuilder()
-				.setLabel(track.title)
-				.setDescription(`${formatDuration(track.duration)} • ${track.author}`)
-				.setValue(index.toString());
-		});
+	const options = result.tracks.map((track, index) => {
+		return new StringSelectMenuOptionBuilder()
+			.setLabel(track.title)
+			.setDescription(`${formatDuration(track.duration)} • ${track.author}`)
+			.setValue(index.toString());
+	});
 
-		select.addOptions(...options);
+	select.addOptions(...options);
 
-		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-			select,
-		);
+	const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+		select,
+	);
 
-		const prompt = await interaction.editReply({
-			components: [row],
-		});
+	const prompt = await interaction.editReply({
+		components: [row],
+	});
 
-		const PROMPT_DISPLAY_TIME_SECONDS = 45;
+	const PROMPT_DISPLAY_TIME_SECONDS = 45;
 
-		try {
-			const confirmation =
-				await prompt.awaitMessageComponent<ComponentType.StringSelect>({
-					filter: (i) => i.user.id === interaction.user.id,
-					time: PROMPT_DISPLAY_TIME_SECONDS * 1_000,
-				});
-
-			const trackIndex = Number(confirmation.values.at(0));
-			const track = result.tracks.at(Number(trackIndex))!;
-			const player = createPlayer(bot, interaction);
-
-			if (!player) {
-				return;
-			}
-
-			player.queue.add(track);
-
-			const embed = createEnqueuedTrackEmbed(track, player.queue);
-
-			await confirmation.update({
-				embeds: [embed],
-				components: [],
+	try {
+		const confirmation =
+			await prompt.awaitMessageComponent<ComponentType.StringSelect>({
+				filter: (i) => i.user.id === interaction.user.id,
+				time: PROMPT_DISPLAY_TIME_SECONDS * 1_000,
 			});
 
-			await startPlaying(player);
-		} catch {
-			await prompt.delete();
+		const trackIndex = Number(confirmation.values.at(0));
+		const track = result.tracks.at(Number(trackIndex))!;
+		const player = createPlayer(bot, interaction);
+
+		if (!player) {
+			return;
 		}
+
+		player.queue.add(track);
+
+		const embed = createEnqueuedTrackEmbed(track, player.queue);
+
+		await confirmation.update({
+			embeds: [embed],
+			components: [],
+		});
+
+		await startPlaying(player);
+	} catch {
+		await prompt.delete();
 	}
 }

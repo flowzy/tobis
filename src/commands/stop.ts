@@ -1,20 +1,15 @@
-import {
-	ChatInputCommandInteraction,
-	EmbedBuilder,
-	SlashCommandBuilder,
-} from 'discord.js';
-import { Bot } from '~/bot';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { EmbedColor } from '~/config/color';
+import { createCommand } from '~/factories/command';
 import { isInVoiceChannel } from '~/helpers/interaction';
 import { getExistingPlayer } from '~/helpers/player';
-import { Command } from '~/interfaces/command';
 
-export default class StopCommand implements Command {
-	data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('stop')
-		.setDescription('Stop playing and clear queue');
+		.setDescription('Stop playing and clear queue'),
 
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	execute(bot, interaction) {
 		if (!isInVoiceChannel(interaction)) {
 			return;
 		}
@@ -39,5 +34,5 @@ export default class StopCommand implements Command {
 					.setFooter({ text: `Skipped ${queueSize} tracks` }),
 			],
 		});
-	}
-}
+	},
+});

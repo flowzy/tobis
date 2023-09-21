@@ -1,14 +1,13 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Bot } from '~/bot';
+import { SlashCommandBuilder } from 'discord.js';
+import { createCommand } from '~/factories/command';
 import { getExistingPlayer } from '~/helpers/player';
-import { Command } from '~/interfaces/command';
 
-export default class PauseCommand implements Command {
-	data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('pause')
-		.setDescription('Pauses the current track');
+		.setDescription('Pauses the current track'),
 
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player) {
@@ -21,5 +20,5 @@ export default class PauseCommand implements Command {
 			content: 'Paused.',
 			ephemeral: true,
 		});
-	}
-}
+	},
+});

@@ -1,10 +1,11 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Bot } from '~/bot';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { EmbedColor } from '~/config/color';
+import { createCommand } from '~/factories/command';
 import { getExistingPlayer } from '~/helpers/player';
-import { Command } from '~/interfaces/command';
+import { formatDuration } from '~/utils/format';
 
-export default class RemoveCommand implements Command {
-	public data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('remove')
 		.setDescription('Remove track from queue')
 		.addNumberOption((option) =>
@@ -12,9 +13,9 @@ export default class RemoveCommand implements Command {
 				.setName('position')
 				.setDescription('Position of track to remove')
 				.setRequired(true),
-		);
+		),
 
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player) {
@@ -30,23 +31,43 @@ export default class RemoveCommand implements Command {
 			return;
 		}
 
-		const position = interaction.options.getNumber('position', true);
+		const index = Math.min(
+			player.queue.size - 1,
+			Math.max(0, interaction.options.getNumber('position', true) - 1),
+		);
 
-		const track = player.queue.at(position);
+		const track = player.queue.at(index)!;
 
-		if (!track) {
-			interaction.reply({
-				content: `No track found at position ${position}`,
-				ephemeral: true,
+		player.queue.remove(index);
+
+		const embed = new EmbedBuilder()
+			.setColor(EmbedColor.Success)
+			.setAuthor({ name: 'Removed from queue' })
+			.setTitle(track.title)
+			.setURL(track.uri ?? null)
+			.setThumbnail(track.displayThumbnail?.('mqdefault') ?? null)
+			.addFields({
+				name: 'Requested by',
+				value: `${track.requester}`,
+				inline: true,
 			});
 
-			return;
+		if (track.duration) {
+			embed.addFields({
+				name: 'Duration',
+				value: `\`${formatDuration(track.duration)}\``,
+				inline: true,
+			});
 		}
 
-		player.queue.remove(position);
+		embed.addFields({
+			name: 'Position',
+			value: `\`${index + 1}\``,
+			inline: true,
+		});
 
 		interaction.reply({
-			content: `Removed ${track.title} from queue (requested by ${track.requester})`,
+			embeds: [embed],
 		});
-	}
-}
+	},
+});

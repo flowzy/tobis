@@ -1,7 +1,8 @@
 import * as Sentry from '@sentry/bun';
 import { ActivityType, Client, GatewayIntentBits } from 'discord.js';
-import { Bot } from '~/bot';
+import { createBot } from '~/bot';
 import { env } from '~/env';
+import { logger } from '~/lib/logger';
 
 Sentry.init({
 	enabled: env.NODE_ENV === 'production' && Boolean(env.SENTRY_DSN),
@@ -9,7 +10,7 @@ Sentry.init({
 	tracesSampleRate: 1,
 });
 
-const bot = new Bot(
+const cleanup = await createBot(
 	new Client({
 		intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 		presence: {
@@ -18,26 +19,13 @@ const bot = new Bot(
 	}),
 );
 
-let isShuttingDown = false;
-['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGQUIT', 'beforeExit', 'exit'].forEach(
-	(signal) => {
-		process.on(signal, async () => {
-			if (isShuttingDown) return;
-			isShuttingDown = true;
-
-			try {
-				await bot.destroy();
-				process.exit(0);
-			} catch (e) {
-				Sentry.captureException(e, {
-					extra: {
-						signal,
-					},
-				});
-
-				console.error('Failed to gracefully shut down.', e);
-				process.exit(1);
-			}
-		});
-	},
-);
+process.on('beforeExit', async () => {
+	try {
+		await cleanup();
+		process.exit(0);
+	} catch (e) {
+		Sentry.captureException(e);
+		logger.error('Failed to gracefully shut down.', e);
+		process.exit(1);
+	}
+});

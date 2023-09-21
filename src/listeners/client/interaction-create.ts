@@ -1,17 +1,15 @@
 import * as Sentry from '@sentry/bun';
-import { ChatInputCommandInteraction, Events, Interaction } from 'discord.js';
-import { Bot } from '~/bot';
+import { Events } from 'discord.js';
 import { env } from '~/env';
+import { createListener } from '~/factories/listener';
 import { Command } from '~/interfaces/command';
-import { Handler } from '~/interfaces/handler';
 
-export default class InteractionCreateHandler
-	implements Handler<Events.InteractionCreate>
-{
-	event = Events.InteractionCreate;
+export default createListener({
+	event: Events.InteractionCreate,
 
-	async listener(bot: Bot, interaction: Interaction) {
+	async execute(bot, interaction) {
 		if (!interaction.isChatInputCommand()) return;
+		if (!interaction.inCachedGuild()) return;
 
 		if (
 			env.NODE_ENV === 'development' &&
@@ -29,17 +27,21 @@ export default class InteractionCreateHandler
 
 		if (!command) {
 			bot.logger.warn(`Command "${interaction.commandName}" not found`);
-			return this.reply(interaction, 'Unknown command');
+
+			return interaction.reply({
+				content: 'Unknown command',
+				ephemeral: true,
+			});
 		}
 
 		if (
 			command.permissions &&
 			!interaction.memberPermissions?.has(command.permissions)
 		) {
-			return this.reply(
-				interaction,
-				'You do not have permission to use this command',
-			);
+			return interaction.reply({
+				content: 'You do not have permission to use this command',
+				ephemeral: true,
+			});
 		}
 
 		try {
@@ -52,22 +54,22 @@ export default class InteractionCreateHandler
 			});
 
 			bot.logger.error(e);
-			this.reply(interaction, 'Something went wrong. Please try again later.');
-		}
-	}
 
-	// TODO: Move this to a utils file?
-	reply(interaction: ChatInputCommandInteraction, message: string) {
-		if (interaction.replied || interaction.deferred) {
-			return interaction.followUp({
+			const message = 'Something went wrong. Please try again later.';
+
+			if (interaction.replied || interaction.deferred) {
+				interaction.followUp({
+					content: message,
+					ephemeral: true,
+				});
+
+				return;
+			}
+
+			interaction.reply({
 				content: message,
 				ephemeral: true,
 			});
 		}
-
-		interaction.reply({
-			content: message,
-			ephemeral: true,
-		});
-	}
-}
+	},
+});

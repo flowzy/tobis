@@ -1,21 +1,16 @@
-import {
-	ChatInputCommandInteraction,
-	EmbedBuilder,
-	SlashCommandBuilder,
-} from 'discord.js';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import ms from 'pretty-ms';
-import { Bot } from '~/bot';
 import { EmbedColor } from '~/config/color';
+import { createCommand } from '~/factories/command';
 import { getExistingPlayer } from '~/helpers/player';
-import { Command } from '~/interfaces/command';
 import { formatDuration } from '~/utils/format';
 
-export default class QueueCommand implements Command {
-	public data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('queue')
-		.setDescription('Get current queue');
+		.setDescription('Get current queue'),
 
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player) {
@@ -58,5 +53,5 @@ export default class QueueCommand implements Command {
 			ephemeral: true,
 			embeds: [embed],
 		});
-	}
-}
+	},
+});

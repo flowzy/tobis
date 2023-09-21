@@ -1,15 +1,14 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Bot } from '~/bot';
+import { SlashCommandBuilder } from 'discord.js';
+import { createCommand } from '~/factories/command';
 import { isInSameVoiceChannel, isInVoiceChannel } from '~/helpers/interaction';
 import { getExistingPlayer } from '~/helpers/player';
-import { Command } from '~/interfaces/command';
 
-export default class SkipCommand implements Command {
-	data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('skip')
-		.setDescription('Skips the current track');
+		.setDescription('Skips the current track'),
 
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+	execute(bot, interaction) {
 		if (!isInVoiceChannel(interaction)) {
 			return;
 		}
@@ -27,5 +26,5 @@ export default class SkipCommand implements Command {
 		player.stop();
 
 		interaction.reply('Skipped.');
-	}
-}
+	},
+});

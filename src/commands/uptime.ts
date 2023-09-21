@@ -1,19 +1,14 @@
-import {
-	CommandInteraction,
-	EmbedBuilder,
-	SlashCommandBuilder,
-} from 'discord.js';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import ms from 'pretty-ms';
-import { Bot } from '~/bot';
 import { EmbedColor } from '~/config/color';
-import { Command } from '~/interfaces/command';
+import { createCommand } from '~/factories/command';
 
-export default class UptimeCommand implements Command {
-	public data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('uptime')
-		.setDescription('Get uptime of the bot');
+		.setDescription('Get uptime of the bot'),
 
-	async execute(bot: Bot, interaction: CommandInteraction) {
+	async execute(bot, interaction) {
 		interaction.reply({
 			ephemeral: true,
 			embeds: [
@@ -23,5 +18,5 @@ export default class UptimeCommand implements Command {
 					.setDescription(`Bot has been up for \`${ms(bot.client.uptime)}\``),
 			],
 		});
-	}
-}
+	},
+});

@@ -1,18 +1,13 @@
-import {
-	CommandInteraction,
-	EmbedBuilder,
-	SlashCommandBuilder,
-} from 'discord.js';
-import { Bot } from '~/bot';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { EmbedColor } from '~/config/color';
-import { Command } from '~/interfaces/command';
+import { createCommand } from '~/factories/command';
 
-export default class PingCommand implements Command {
-	public data = new SlashCommandBuilder()
+export default createCommand({
+	data: new SlashCommandBuilder()
 		.setName('ping')
-		.setDescription('Measure latency');
+		.setDescription('Measure latency'),
 
-	async execute(bot: Bot, interaction: CommandInteraction) {
+	async execute(bot, interaction) {
 		const sent = await interaction.reply({
 			content: 'Pinging... ',
 			fetchReply: true,
@@ -41,5 +36,5 @@ export default class PingCommand implements Command {
 					),
 			],
 		});
-	}
-}
+	},
+});
