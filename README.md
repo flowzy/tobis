@@ -1,9 +1,29 @@
 # Tobis
 
+<img align="right" src=".github/tobis.jpg" width="200" height="150">
+
 Tobis is a Discord music bot implementation, written in TypeScript.\
 It uses [Docker](https://www.docker.com/), [Bun](https://bun.sh), [discord.js](https://discordjs.guide/), [Lavalink](https://github.com/lavalink-devs/Lavalink), and [Sentry](https://sentry.io/).
 
 The bot currently does not support [sharding](https://discord.com/developers/docs/topics/gateway#sharding).
+
+> [!IMPORTANT]
+> This project is still in development.
+
+<details>
+  <summary>Table of contents</summary>
+
+- [Available commands](#available-commands)
+- [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Set up environment variables](#set-up-environment-variables)
+  - [Running the bot](#running-the-bot)
+    - [Development](#development)
+    - [Production](#production)
+  - [Shutting down the bot](#shutting-down-the-bot)
+  - [Registering commands](#registering-commands)
+
+</details>
 
 ## Available commands
 
@@ -12,8 +32,8 @@ The bot currently does not support [sharding](https://discord.com/developers/doc
 | `/play`   | Play a song           |
 | `/skip`   | Skip the current song |
 | `/stop`   | Stop the music        |
-| `/ping`   | Measures the latency  |
-| `/uptime` | Reports the uptime    |
+| `/ping`   | Measure the latency   |
+| `/uptime` | Report the uptime     |
 
 ## Getting started
 
