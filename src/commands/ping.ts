@@ -10,7 +10,7 @@ import { Command } from '~/interfaces/command';
 export default class PingCommand implements Command {
 	public data = new SlashCommandBuilder()
 		.setName('ping')
-		.setDescription("Measure bot's ping");
+		.setDescription('Measure latency');
 
 	async execute(bot: Bot, interaction: CommandInteraction) {
 		const sent = await interaction.reply({

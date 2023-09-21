@@ -1,33 +1,43 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder,
+} from 'discord.js';
 import { Bot } from '~/bot';
+import { EmbedColor } from '~/config/color';
+import { isInVoiceChannel } from '~/helpers/interaction';
+import { getExistingPlayer } from '~/helpers/player';
 import { Command } from '~/interfaces/command';
-import { createInfoMessage } from '~/messages/info';
 
 export default class StopCommand implements Command {
 	data = new SlashCommandBuilder()
 		.setName('stop')
-		.setDescription('Disconnect from the voice channel and clear queue');
+		.setDescription('Stop playing and clear queue');
 
-	async execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
-		const player = bot.lavalink.players.get(interaction.guild.id);
-
-		if (!player) {
-			// TODO: fix type error
-			return interaction.reply(
-				createInfoMessage({
-					message: 'I am not connected to a voice channel',
-					ephemeral: true,
-				}),
-			);
+	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+		if (!isInVoiceChannel(interaction)) {
+			return;
 		}
 
-		player.destroy(true);
-		await player.nowPlayingMessage?.delete();
+		const player = getExistingPlayer(bot, interaction);
 
-		return interaction.reply(
-			createInfoMessage({
-				message: 'Disconnected from voice channel and cleared queue',
-			}),
-		);
+		if (!player) {
+			return;
+		}
+
+		const queueSize = player.queue.totalSize;
+
+		player.destroy(true);
+
+		interaction.reply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor(EmbedColor.Info)
+					.setDescription(
+						`Disconnected from <#${interaction.member.voice.channel?.id}>`,
+					)
+					.setFooter({ text: `Skipped ${queueSize} tracks` }),
+			],
+		});
 	}
 }

@@ -10,7 +10,7 @@ export function createEnqueuedPlaylistEmbed(
 ) {
 	const firstTrack = playlist.tracks.at(0)!;
 
-	return new EmbedBuilder()
+	const embed = new EmbedBuilder()
 		.setColor(EmbedColor.Success)
 		.setAuthor({ name: 'Added to queue' })
 		.setTitle(playlist.name)
@@ -23,10 +23,15 @@ export function createEnqueuedPlaylistEmbed(
 				value: `\`${formatDuration(playlist.duration)}\``,
 				inline: true,
 			},
-			{
-				name: 'Position',
-				value: `\`${queue.size - playlist.tracks.length + 1}\``,
-				inline: true,
-			},
 		);
+
+	if (queue.size) {
+		embed.addFields({
+			name: 'Position',
+			value: `\`${Math.max(1, queue.size - playlist.tracks.length)}\``,
+			inline: true,
+		});
+	}
+
+	return embed;
 }

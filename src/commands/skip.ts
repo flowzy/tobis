@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { SearchResult } from 'magmastream';
 import { Bot } from '~/bot';
+import { isInSameVoiceChannel, isInVoiceChannel } from '~/helpers/interaction';
+import { getExistingPlayer } from '~/helpers/player';
 import { Command } from '~/interfaces/command';
 
 export default class PlayCommand implements Command {
@@ -8,28 +9,15 @@ export default class PlayCommand implements Command {
 		.setName('skip')
 		.setDescription('Skips the current track');
 
-	async execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
-		if (!interaction.member.voice.channel) {
-			return interaction.reply({
-				content: 'You must join a voice channel to use this command.',
-				ephemeral: true,
-			});
+	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
+		if (!isInVoiceChannel(interaction)) {
+			return;
 		}
 
-		const player = bot.lavalink.players.get(interaction.guildId);
+		const player = getExistingPlayer(bot, interaction);
 
-		if (!player) {
-			return interaction.reply({
-				content: 'I am not in a voice channel.',
-				ephemeral: true,
-			});
-		}
-
-		if (player.voiceChannel !== interaction.member.voice.channel.id) {
-			return interaction.reply({
-				content: `You must be in the same voice channel as me - <#${player.voiceChannel}>`,
-				ephemeral: true,
-			});
+		if (!player || !isInSameVoiceChannel(interaction, player)) {
+			return;
 		}
 
 		if (player.queue.size) {
@@ -38,15 +26,6 @@ export default class PlayCommand implements Command {
 
 		player.stop();
 
-		return interaction.reply('Skipped.');
-	}
-
-	displaySelect(
-		interaction: ChatInputCommandInteraction,
-		result: SearchResult,
-	) {
-		return interaction.reply(
-			'Search is not implemented yet. Enter a URL instead.',
-		);
+		interaction.reply('Skipped.');
 	}
 }

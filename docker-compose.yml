@@ -1,17 +1,17 @@
 services:
   bot:
-    container_name: bot
+    container_name: ${DOCKER_PREFIX}bot
     image: oven/bun:latest
     restart: on-failure
     volumes:
       - .:/home/bun/app
-    command: bun --bun start --watch
+    command: bun --watch run index.ts
     tty: true
     depends_on:
       - lavalink
 
   lavalink:
-    container_name: lavalink
+    container_name: ${DOCKER_PREFIX}lavalink
     image: ghcr.io/lavalink-devs/lavalink:ab0cae4-alpine
     restart: unless-stopped
     expose:

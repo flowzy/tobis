@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/bun';
 import {
 	ActionRowBuilder,
 	ChatInputCommandInteraction,
@@ -9,8 +8,9 @@ import {
 	StringSelectMenuBuilder,
 	StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { Player, SearchPlatform, SearchResult } from 'magmastream';
+import { SearchPlatform, SearchResult } from 'magmastream';
 import { Bot } from '~/bot';
+import { createPlayer, startPlaying } from '~/helpers/player';
 import { Command } from '~/interfaces/command';
 import { createEnqueuedPlaylistEmbed } from '~/messages/enqueued-playlist';
 import { createEnqueuedTrackEmbed } from '~/messages/enqueued-track';
@@ -46,7 +46,7 @@ export default class PlayCommand implements Command {
 	];
 
 	async execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>) {
-		const player = await this.#createPlayer(bot, interaction);
+		const player = createPlayer(bot, interaction);
 
 		if (!player) {
 			return;
@@ -106,71 +106,11 @@ export default class PlayCommand implements Command {
 				break;
 		}
 
-		await this.#play(player);
+		await startPlaying(player);
 
-		return interaction.editReply({
+		interaction.editReply({
 			embeds: [embed],
 		});
-	}
-
-	async #createPlayer(
-		bot: Bot,
-		interaction: ChatInputCommandInteraction<'cached'>,
-	): Promise<Player | undefined> {
-		if (!interaction.member.voice.channel) {
-			await interaction.reply({
-				content: 'You must join a voice channel to use this command.',
-				ephemeral: true,
-			});
-
-			return;
-		}
-
-		let player: Player;
-
-		try {
-			player = bot.lavalink.create({
-				guild: interaction.guild.id,
-				voiceChannel: interaction.member.voice.channel.id,
-				textChannel: interaction.channelId,
-				selfDeafen: true,
-				volume: 50,
-			});
-		} catch (e) {
-			Sentry.captureException(e, {
-				extra: {
-					command: 'play',
-				},
-			});
-
-			bot.logger.error(e);
-
-			await interaction.reply({
-				content: 'Music player is not ready yet. Try again later.',
-				ephemeral: true,
-			});
-
-			return;
-		}
-
-		if (player.voiceChannel !== interaction.member.voice.channel.id) {
-			await interaction.reply({
-				content: `You must be in the same voice channel as me - <#${player.voiceChannel}>`,
-				ephemeral: true,
-			});
-
-			return;
-		}
-
-		return player;
-	}
-
-	async #play(player: Player) {
-		player.connect();
-
-		if (!player.playing && !player.paused && player.queue.totalSize) {
-			await player.play();
-		}
 	}
 
 	/**
@@ -217,7 +157,7 @@ export default class PlayCommand implements Command {
 
 			const trackIndex = Number(confirmation.values.at(0));
 			const track = result.tracks.at(Number(trackIndex))!;
-			const player = await this.#createPlayer(bot, interaction);
+			const player = createPlayer(bot, interaction);
 
 			if (!player) {
 				return;
@@ -232,7 +172,7 @@ export default class PlayCommand implements Command {
 				components: [],
 			});
 
-			await this.#play(player);
+			await startPlaying(player);
 		} catch {
 			await prompt.delete();
 		}

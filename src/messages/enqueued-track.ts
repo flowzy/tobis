@@ -4,7 +4,7 @@ import { EmbedColor } from '~/config/color';
 import { formatDuration } from '~/utils/format';
 
 export function createEnqueuedTrackEmbed(track: Track, queue: Queue) {
-	return new EmbedBuilder()
+	const embed = new EmbedBuilder()
 		.setColor(EmbedColor.Success)
 		.setAuthor({ name: 'Added to queue' })
 		.setTitle(track.title)
@@ -23,10 +23,15 @@ export function createEnqueuedTrackEmbed(track: Track, queue: Queue) {
 					: `\`${formatDuration(track.duration)}\``,
 				inline: true,
 			},
-			{
-				name: 'Position',
-				value: `\`${queue.size + 1}\``,
-				inline: true,
-			},
 		);
+
+	if (queue.size) {
+		embed.addFields({
+			name: 'Position',
+			value: `\`${queue.size}\``,
+			inline: true,
+		});
+	}
+
+	return embed;
 }

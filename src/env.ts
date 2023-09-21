@@ -17,6 +17,12 @@ export const env = createEnv({
 			.transform((value) => value === 'true'),
 		BOT_IDLE_DISCONNECT_SECONDS: z.coerce.number().default(30),
 
+		BOT_VOICE_VOLUME: z.coerce.number().min(1).max(100).default(100),
+		BOT_VOICE_SELF_DEAFEN: z
+			.union([z.literal('true'), z.literal('false')])
+			.default('true')
+			.transform((value) => value === 'true'),
+
 		BOT_DEFAULT_SEARCH_PLATFORM: z.union([
 			z.literal('youtube'),
 			z.literal('youtube music'),

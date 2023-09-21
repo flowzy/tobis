@@ -1,5 +1,5 @@
 services:
   bot:
-    command: /bin/sh -c 'bun install && bun --bun start'
+    command: /bin/sh -c 'bun install && bun run index.ts'
     environment:
       - NODE_ENV=production
