@@ -56,6 +56,13 @@ export class Bot {
 
 		this.client.user?.setStatus('invisible');
 
+		this.logger.debug('Destroying lavalink connection...');
+		this.lavalink.nodes.forEach((node) => {
+			if (node.options.identifier) {
+				this.lavalink.destroyNode(node.options.identifier);
+			}
+		});
+
 		this.logger.debug('Destroying %d players...', this.lavalink.players.size);
 		await Promise.allSettled(
 			this.lavalink.players.map(async (player) => {
@@ -63,10 +70,6 @@ export class Bot {
 				player.destroy(true);
 			}),
 		);
-
-		if (env.LAVALINK_IDENTIFIER) {
-			this.lavalink.destroyNode(env.LAVALINK_IDENTIFIER);
-		}
 
 		this.logger.debug('Destroying client...');
 		await this.client.destroy();
@@ -102,7 +105,7 @@ export class Bot {
 			this.lavalink.on('trackStart', async (player, track) => {
 				clearTimeout(player.timeout);
 
-				this.logger.debug('Started play in %s', player.guild);
+				this.logger.debug('Started playing in %s', player.guild);
 
 				if (!player.textChannel) return;
 
@@ -136,6 +139,19 @@ export class Bot {
 						env.BOT_IDLE_DISCONNECT_SECONDS * 1_000,
 					);
 				}
+			});
+
+			this.lavalink.on('playerDisconnect', async (player, oldChannel) => {
+				this.logger.debug(
+					'Player disconnected from %s (channel: %s)',
+					player.guild,
+					oldChannel,
+				);
+				player.destroy(true);
+			});
+
+			this.lavalink.on('playerDestroy', (player) => {
+				player.nowPlayingMessage?.delete();
 			});
 		});
 	}
