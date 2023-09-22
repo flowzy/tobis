@@ -1,6 +1,8 @@
-# Tobis
+<div align="center">
+  <img src=".github/tobis.jpg" width="200">
+</div>
 
-<img align="right" src=".github/tobis.jpg" width="200" height="150">
+# 🎧 Tobis
 
 Tobis is a Discord music bot implementation, written in TypeScript.\
 It uses [Docker](https://www.docker.com/), [Bun](https://bun.sh), [discord.js](https://discordjs.guide/), [Lavalink](https://github.com/lavalink-devs/Lavalink), and [Sentry](https://sentry.io/).
@@ -8,24 +10,11 @@ It uses [Docker](https://www.docker.com/), [Bun](https://bun.sh), [discord.js](h
 The bot currently does not support [sharding](https://discord.com/developers/docs/topics/gateway#sharding).
 
 > [!IMPORTANT]
-> This project is still in development.
+> This project is still in its early stages.
 
-<details>
-  <summary>Table of contents</summary>
+## Features
 
-- [Available commands](#available-commands)
-- [Getting started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Set up environment variables](#set-up-environment-variables)
-  - [Running the bot](#running-the-bot)
-    - [Development](#development)
-    - [Production](#production)
-  - [Shutting down the bot](#shutting-down-the-bot)
-  - [Registering commands](#registering-commands)
-
-</details>
-
-## Available commands
+### Slash commands
 
 | Command   | Description             |
 | --------- | ----------------------- |
@@ -53,29 +42,18 @@ The bot currently does not support [sharding](https://discord.com/developers/doc
 cp .env.example .env
 ```
 
-### Running the bot
+### Running commands
 
-#### Development
+For easier management, the project comes with a [`Makefile`](Makefile).
 
-```bash
-make dev
-```
-
-Launches the bot in development mode. It will automatically restart when you make changes to the source code.
-
-#### Production
-
-```bash
-make prod
-```
-
-Launches the bot in production mode.
-
-### Shutting down the bot
-
-```bash
-make stop
-```
+| Command            | Description                                                                   |
+| ------------------ | ----------------------------------------------------------------------------- |
+| `make dev`         | Launches the bot in development mode. This will automatically restart the bot |
+| `make prod`        | Launches the bot in production mode                                           |
+| `make stop`        | Stops the bot                                                                 |
+| `make logs`        | Shows the logs                                                                |
+| `make purge`       | Stops the bot and removes all containers / images                             |
+| `make clear-cache` | Clears the file-system cache                                                  |
 
 ### Registering commands
 

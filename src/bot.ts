@@ -10,11 +10,11 @@ import {
 import { env } from '~/env';
 import { Bot } from '~/interfaces/bot';
 import { Command } from '~/interfaces/command';
+import { Listener } from '~/interfaces/listener';
 import { createLavalink } from '~/lib/lavalink';
 import { logger } from '~/lib/logger';
 import { createCache, isCached } from '~/utils/cache';
 import { readDir } from '~/utils/fs';
-import { Listener } from './interfaces/listener';
 
 const rest = new REST().setToken(env.BOT_TOKEN);
 
@@ -128,7 +128,7 @@ async function registerCommands() {
 		)) as APIApplicationCommand[];
 
 		if (cache.length === data.length) {
-			logger.info('Commands succesfully registered!');
+			logger.info('Commands successfully registered!');
 			createCache(CACHE_FILENAME, cache);
 		} else {
 			logger.warn(
