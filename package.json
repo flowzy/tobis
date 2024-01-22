@@ -18,7 +18,7 @@
 		"discord.js": "^14.13.0",
 		"glob": "^10.3.4",
 		"magmastream": "^2.2.3",
-		"pretty-ms": "^8.0.0",
+		"pretty-ms": "^9.0.0",
 		"winston": "^3.10.0",
 		"zod": "^3.22.2"
 	}
