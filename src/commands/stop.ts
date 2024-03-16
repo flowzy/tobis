@@ -1,13 +1,13 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { EmbedColor } from '~/config/color';
-import { createCommand } from '~/factories/command';
-import { isInVoiceChannel } from '~/helpers/interaction';
-import { getExistingPlayer } from '~/helpers/player';
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EMBED_COLOR_INFO } from "~/config/color";
+import { createCommand } from "~/factories/command";
+import { isInVoiceChannel } from "~/helpers/interaction";
+import { getExistingPlayer } from "~/helpers/player";
 
 export default createCommand({
 	data: new SlashCommandBuilder()
-		.setName('stop')
-		.setDescription('Stop playing and clear queue'),
+		.setName("stop")
+		.setDescription("Stop playing and clear queue"),
 
 	execute(bot, interaction) {
 		if (!isInVoiceChannel(interaction)) {
@@ -27,7 +27,7 @@ export default createCommand({
 		interaction.reply({
 			embeds: [
 				new EmbedBuilder()
-					.setColor(EmbedColor.Info)
+					.setColor(EMBED_COLOR_INFO)
 					.setDescription(
 						`Disconnected from <#${interaction.member.voice.channel?.id}>`,
 					)

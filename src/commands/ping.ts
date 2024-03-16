@@ -1,15 +1,15 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { EmbedColor } from '~/config/color';
-import { createCommand } from '~/factories/command';
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EMBED_COLOR_SUCCESS } from "~/config/color";
+import { createCommand } from "~/factories/command";
 
 export default createCommand({
 	data: new SlashCommandBuilder()
-		.setName('ping')
-		.setDescription('Measure latency'),
+		.setName("ping")
+		.setDescription("Measure latency"),
 
 	async execute(bot, interaction) {
 		const sent = await interaction.reply({
-			content: 'Pinging... ',
+			content: "Pinging... ",
 			fetchReply: true,
 			ephemeral: true,
 		});
@@ -18,16 +18,16 @@ export default createCommand({
 			content: null,
 			embeds: [
 				new EmbedBuilder()
-					.setColor(EmbedColor.Success)
-					.setAuthor({ name: 'Pong!' })
+					.setColor(EMBED_COLOR_SUCCESS)
+					.setAuthor({ name: "Pong!" })
 					.addFields(
 						{
-							name: 'Heartbeat',
+							name: "Heartbeat",
 							value: `\`${Math.max(0, bot.client.ws.ping)} ms\``,
 							inline: true,
 						},
 						{
-							name: 'Roundtrip Latency',
+							name: "Roundtrip Latency",
 							value: `\`${
 								sent.createdTimestamp - interaction.createdTimestamp
 							} ms\``,

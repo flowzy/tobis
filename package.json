@@ -4,7 +4,7 @@
 	"module": "index.ts",
 	"scripts": {
 		"format": "biome format --write ./src",
-		"lint": "biome lint ./src",
+		"lint": "biome lint --apply ./src",
 		"check": "tsc"
 	},
 	"devDependencies": {

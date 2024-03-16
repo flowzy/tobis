@@ -1,11 +1,11 @@
-import { SlashCommandBuilder } from 'discord.js';
-import { createCommand } from '~/factories/command';
-import { getExistingPlayer } from '~/helpers/player';
+import { SlashCommandBuilder } from "discord.js";
+import { createCommand } from "~/factories/command";
+import { getExistingPlayer } from "~/helpers/player";
 
 export default createCommand({
 	data: new SlashCommandBuilder()
-		.setName('resume')
-		.setDescription('Resumes the current track'),
+		.setName("resume")
+		.setDescription("Resumes the current track"),
 
 	execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
@@ -17,7 +17,7 @@ export default createCommand({
 		player.pause(false);
 
 		interaction.reply({
-			content: 'Resumed.',
+			content: "Resumed.",
 			ephemeral: true,
 		});
 	},

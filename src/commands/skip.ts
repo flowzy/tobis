@@ -1,12 +1,12 @@
-import { SlashCommandBuilder } from 'discord.js';
-import { createCommand } from '~/factories/command';
-import { isInSameVoiceChannel, isInVoiceChannel } from '~/helpers/interaction';
-import { getExistingPlayer } from '~/helpers/player';
+import { SlashCommandBuilder } from "discord.js";
+import { createCommand } from "~/factories/command";
+import { isInSameVoiceChannel, isInVoiceChannel } from "~/helpers/interaction";
+import { getExistingPlayer } from "~/helpers/player";
 
 export default createCommand({
 	data: new SlashCommandBuilder()
-		.setName('skip')
-		.setDescription('Skips the current track'),
+		.setName("skip")
+		.setDescription("Skips the current track"),
 
 	execute(bot, interaction) {
 		if (!isInVoiceChannel(interaction)) {
@@ -25,6 +25,6 @@ export default createCommand({
 
 		player.stop();
 
-		interaction.reply('Skipped.');
+		interaction.reply("Skipped.");
 	},
 });

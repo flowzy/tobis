@@ -1,7 +1,7 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import * as fs from "node:fs";
+import * as path from "node:path";
 
-const CACHE_DIR = '.cache';
+const CACHE_DIR = ".cache";
 const ROOT_DIR = path.dirname(Bun.main);
 
 function getCachePath(filename: string) {

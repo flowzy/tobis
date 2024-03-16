@@ -1,14 +1,14 @@
-import { TextBasedChannelFields } from 'discord.js';
-import { createListener } from '~/factories/listener';
-import { createNowPlayingMessage } from '~/messages/now-playing';
+import type { TextBasedChannelFields } from "discord.js";
+import { createListener } from "~/factories/listener";
+import { createNowPlayingMessage } from "~/messages/now-playing";
 
 export default createListener({
-	event: 'trackStart',
+	event: "trackStart",
 
 	async execute(bot, player, track) {
 		clearTimeout(player.timeout);
 
-		bot.logger.debug('Started playing in %s', player.guild);
+		bot.logger.debug("Started playing in %s", player.guild);
 
 		if (!player.textChannel) return;
 

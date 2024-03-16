@@ -1,5 +1,8 @@
-import { ChatInputCommandInteraction, VoiceBasedChannel } from 'discord.js';
-import { Player } from 'magmastream';
+import type {
+	ChatInputCommandInteraction,
+	VoiceBasedChannel,
+} from "discord.js";
+import type { Player } from "magmastream";
 
 /**
  * Checks whether the user is in a voice channel.
@@ -7,15 +10,15 @@ import { Player } from 'magmastream';
  * @param interaction
  */
 export function isInVoiceChannel(
-	interaction: ChatInputCommandInteraction<'cached'>,
-): interaction is ChatInputCommandInteraction<'cached'> & {
+	interaction: ChatInputCommandInteraction<"cached">,
+): interaction is ChatInputCommandInteraction<"cached"> & {
 	member: { voice: { channel: VoiceBasedChannel } };
 } {
 	const isInVoiceChannel = Boolean(interaction.member.voice.channel?.id);
 
 	if (!isInVoiceChannel) {
 		interaction.reply({
-			content: 'You must be in a voice channel to use this command',
+			content: "You must be in a voice channel to use this command",
 			ephemeral: true,
 		});
 	}
@@ -31,9 +34,9 @@ export function isInVoiceChannel(
  * @param player
  */
 export function isInSameVoiceChannel(
-	interaction: ChatInputCommandInteraction<'cached'>,
+	interaction: ChatInputCommandInteraction<"cached">,
 	player: Player,
-): interaction is ChatInputCommandInteraction<'cached'> & {
+): interaction is ChatInputCommandInteraction<"cached"> & {
 	member: { voice: { channel: VoiceBasedChannel } };
 } {
 	const isInSameVoiceChannel =

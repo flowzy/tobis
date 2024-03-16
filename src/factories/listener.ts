@@ -1,4 +1,4 @@
-import { Listener, ListenerEvent } from '~/interfaces/listener';
+import type { Listener, ListenerEvent } from "~/interfaces/listener";
 
 export function createListener<TEvent extends ListenerEvent = ListenerEvent>({
 	event,

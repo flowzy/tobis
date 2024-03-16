@@ -1,10 +1,14 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Bot } from '~/interfaces/bot';
+import type {
+	ChatInputCommandInteraction,
+	SlashCommandBuilder,
+} from "discord.js";
+import type { Bot } from "~/interfaces/bot";
 
 export interface Command {
 	data:
 		| SlashCommandBuilder
-		| Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
+		| Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 	permissions?: bigint[];
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<'cached'>): any;
+	// biome-ignore lint/suspicious/noExplicitAny: TODO: fix this
+	execute(bot: Bot, interaction: ChatInputCommandInteraction<"cached">): any;
 }

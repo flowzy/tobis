@@ -1,6 +1,6 @@
-import { Events } from 'discord.js';
-import { VoicePacket } from 'magmastream';
-import { createListener } from '~/factories/listener';
+import { Events } from "discord.js";
+import type { VoicePacket } from "magmastream";
+import { createListener } from "~/factories/listener";
 
 export default createListener({
 	event: Events.Raw,

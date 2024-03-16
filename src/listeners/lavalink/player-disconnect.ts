@@ -1,11 +1,11 @@
-import { createListener } from '~/factories/listener';
+import { createListener } from "~/factories/listener";
 
 export default createListener({
-	event: 'playerDisconnect',
+	event: "playerDisconnect",
 
 	execute(bot, player, oldChannel) {
 		bot.logger.debug(
-			'Player disconnected from %s (channel: %s)',
+			"Player disconnected from %s (channel: %s)",
 			player.guild,
 			oldChannel,
 		);

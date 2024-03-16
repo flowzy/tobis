@@ -1,8 +1,8 @@
-import * as Sentry from '@sentry/bun';
-import { Events } from 'discord.js';
-import { env } from '~/env';
-import { createListener } from '~/factories/listener';
-import { Command } from '~/interfaces/command';
+import * as Sentry from "@sentry/bun";
+import { Events } from "discord.js";
+import { env } from "~/env";
+import { createListener } from "~/factories/listener";
+import type { Command } from "~/interfaces/command";
 
 export default createListener({
 	event: Events.InteractionCreate,
@@ -12,11 +12,11 @@ export default createListener({
 		if (!interaction.inCachedGuild()) return;
 
 		if (
-			env.NODE_ENV === 'development' &&
+			env.NODE_ENV === "development" &&
 			env.BOT_OWNER_ID !== interaction.user.id
 		) {
 			return interaction.reply({
-				content: 'You are not allowed to use this bot in development mode',
+				content: "You are not allowed to use this bot in development mode",
 				ephemeral: true,
 			});
 		}
@@ -29,7 +29,7 @@ export default createListener({
 			bot.logger.warn(`Command "${interaction.commandName}" not found`);
 
 			return interaction.reply({
-				content: 'Unknown command',
+				content: "Unknown command",
 				ephemeral: true,
 			});
 		}
@@ -39,7 +39,7 @@ export default createListener({
 			!interaction.memberPermissions?.has(command.permissions)
 		) {
 			return interaction.reply({
-				content: 'You do not have permission to use this command',
+				content: "You do not have permission to use this command",
 				ephemeral: true,
 			});
 		}
@@ -55,7 +55,7 @@ export default createListener({
 
 			bot.logger.error(e);
 
-			const message = 'Something went wrong. Please try again later.';
+			const message = "Something went wrong. Please try again later.";
 
 			if (interaction.replied || interaction.deferred) {
 				interaction.followUp({

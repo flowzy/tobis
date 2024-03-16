@@ -1,17 +1,17 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { EmbedColor } from '~/config/color';
-import { createCommand } from '~/factories/command';
-import { getExistingPlayer } from '~/helpers/player';
-import { formatDuration } from '~/utils/format';
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EMBED_COLOR_SUCCESS } from "~/config/color";
+import { createCommand } from "~/factories/command";
+import { getExistingPlayer } from "~/helpers/player";
+import { formatDuration } from "~/utils/format";
 
 export default createCommand({
 	data: new SlashCommandBuilder()
-		.setName('remove')
-		.setDescription('Remove track from queue')
+		.setName("remove")
+		.setDescription("Remove track from queue")
 		.addNumberOption((option) =>
 			option
-				.setName('position')
-				.setDescription('Position of track to remove')
+				.setName("position")
+				.setDescription("Position of track to remove")
 				.setRequired(true),
 		),
 
@@ -24,7 +24,7 @@ export default createCommand({
 
 		if (!player.queue.size) {
 			interaction.reply({
-				content: 'Queue is empty',
+				content: "Queue is empty",
 				ephemeral: true,
 			});
 
@@ -33,35 +33,36 @@ export default createCommand({
 
 		const index = Math.min(
 			player.queue.size - 1,
-			Math.max(0, interaction.options.getNumber('position', true) - 1),
+			Math.max(0, interaction.options.getNumber("position", true) - 1),
 		);
 
+		// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
 		const track = player.queue.at(index)!;
 
 		player.queue.remove(index);
 
 		const embed = new EmbedBuilder()
-			.setColor(EmbedColor.Success)
-			.setAuthor({ name: 'Removed from queue' })
+			.setColor(EMBED_COLOR_SUCCESS)
+			.setAuthor({ name: "Removed from queue" })
 			.setTitle(track.title)
 			.setURL(track.uri ?? null)
-			.setThumbnail(track.displayThumbnail?.('mqdefault') ?? null)
+			.setThumbnail(track.displayThumbnail?.("mqdefault") ?? null)
 			.addFields({
-				name: 'Requested by',
+				name: "Requested by",
 				value: `${track.requester}`,
 				inline: true,
 			});
 
 		if (track.duration) {
 			embed.addFields({
-				name: 'Duration',
+				name: "Duration",
 				value: `\`${formatDuration(track.duration)}\``,
 				inline: true,
 			});
 		}
 
 		embed.addFields({
-			name: 'Position',
+			name: "Position",
 			value: `\`${index + 1}\``,
 			inline: true,
 		});

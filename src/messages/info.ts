@@ -1,9 +1,9 @@
 import {
 	EmbedBuilder,
-	InteractionReplyOptions,
-	MessageCreateOptions,
-} from 'discord.js';
-import { EmbedColor } from '~/config/color';
+	type InteractionReplyOptions,
+	type MessageCreateOptions,
+} from "discord.js";
+import { EMBED_COLOR_INFO } from "~/config/color";
 
 export function createInfoMessage({
 	message,
@@ -17,7 +17,7 @@ export function createInfoMessage({
 	ephemeral?: boolean;
 }): MessageCreateOptions | InteractionReplyOptions {
 	const embed = new EmbedBuilder()
-		.setColor(EmbedColor.Info)
+		.setColor(EMBED_COLOR_INFO)
 		.setAuthor({ name: title })
 		.setDescription(message);
 

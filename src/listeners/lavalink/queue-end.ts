@@ -1,13 +1,13 @@
-import { TextBasedChannelFields } from 'discord.js';
-import { env } from '~/env';
-import { createListener } from '~/factories/listener';
-import { createQueueEndedEmbed } from '~/messages/queue-ended';
+import type { TextBasedChannelFields } from "discord.js";
+import { env } from "~/env";
+import { createListener } from "~/factories/listener";
+import { createQueueEndedEmbed } from "~/messages/queue-ended";
 
 export default createListener({
-	event: 'queueEnd',
+	event: "queueEnd",
 
 	execute(bot, player) {
-		bot.logger.debug('Queue ended for player %s', player.guild);
+		bot.logger.debug("Queue ended for player %s", player.guild);
 
 		if (!player.textChannel) return;
 

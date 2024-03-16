@@ -1,6 +1,6 @@
-import * as Sentry from '@sentry/bun';
-import { Events } from 'discord.js';
-import { createListener } from '~/factories/listener';
+import * as Sentry from "@sentry/bun";
+import { Events } from "discord.js";
+import { createListener } from "~/factories/listener";
 
 export default createListener({
 	event: Events.Error,

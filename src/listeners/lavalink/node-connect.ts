@@ -1,9 +1,9 @@
-import { createListener } from '~/factories/listener';
+import { createListener } from "~/factories/listener";
 
 export default createListener({
-	event: 'nodeConnect',
+	event: "nodeConnect",
 
 	execute(bot, node) {
-		bot.logger.info('Node %s connected.', node.options.identifier);
+		bot.logger.info("Node %s connected.", node.options.identifier);
 	},
 });

@@ -1,25 +1,25 @@
-import { EmbedBuilder } from 'discord.js';
-import { Queue, Track } from 'magmastream';
-import { EmbedColor } from '~/config/color';
-import { formatDuration } from '~/utils/format';
+import { EmbedBuilder } from "discord.js";
+import type { Queue, Track } from "magmastream";
+import { EMBED_COLOR_SUCCESS } from "~/config/color";
+import { formatDuration } from "~/utils/format";
 
 export function createEnqueuedTrackEmbed(track: Track, queue: Queue) {
 	const embed = new EmbedBuilder()
-		.setColor(EmbedColor.Success)
-		.setAuthor({ name: 'Added to queue' })
+		.setColor(EMBED_COLOR_SUCCESS)
+		.setAuthor({ name: "Added to queue" })
 		.setTitle(track.title)
 		.setURL(track.uri)
-		.setThumbnail(track.displayThumbnail('mqdefault'))
+		.setThumbnail(track.displayThumbnail("mqdefault"))
 		.addFields(
 			{
-				name: track.isStream ? 'Streamer' : 'Uploaded',
+				name: track.isStream ? "Streamer" : "Uploaded",
 				value: track.author,
 				inline: true,
 			},
 			{
-				name: 'Duration',
+				name: "Duration",
 				value: track.isStream
-					? '🔴 LIVE'
+					? "🔴 LIVE"
 					: `\`${formatDuration(track.duration)}\``,
 				inline: true,
 			},
@@ -27,7 +27,7 @@ export function createEnqueuedTrackEmbed(track: Track, queue: Queue) {
 
 	if (queue.size) {
 		embed.addFields({
-			name: 'Position',
+			name: "Position",
 			value: `\`${queue.size}\``,
 			inline: true,
 		});

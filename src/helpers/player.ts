@@ -1,9 +1,9 @@
-import * as Sentry from '@sentry/bun';
-import { ChatInputCommandInteraction } from 'discord.js';
-import { Player } from 'magmastream';
-import { Bot } from '~/interfaces/bot';
-import { env } from '~/env';
-import { isInSameVoiceChannel, isInVoiceChannel } from './interaction';
+import * as Sentry from "@sentry/bun";
+import type { ChatInputCommandInteraction } from "discord.js";
+import type { Player } from "magmastream";
+import type { Bot } from "~/interfaces/bot";
+import { env } from "~/env";
+import { isInSameVoiceChannel, isInVoiceChannel } from "./interaction";
 
 /**
  * Finds an existing player for the guild.
@@ -14,13 +14,13 @@ import { isInSameVoiceChannel, isInVoiceChannel } from './interaction';
  */
 export function getExistingPlayer(
 	bot: Bot,
-	interaction: ChatInputCommandInteraction<'cached'>,
+	interaction: ChatInputCommandInteraction<"cached">,
 ) {
 	const player = bot.lavalink.players.get(interaction.guild.id);
 
 	if (!player) {
 		interaction.reply({
-			content: 'I am not connected to a voice channel',
+			content: "I am not connected to a voice channel",
 			ephemeral: true,
 		});
 
@@ -51,7 +51,7 @@ export function getExistingPlayer(
  */
 export function createPlayer(
 	bot: Bot,
-	interaction: ChatInputCommandInteraction<'cached'>,
+	interaction: ChatInputCommandInteraction<"cached">,
 ) {
 	if (!isInVoiceChannel(interaction)) {
 		return;
@@ -70,14 +70,14 @@ export function createPlayer(
 	} catch (e) {
 		Sentry.captureException(e, {
 			extra: {
-				command: 'play',
+				command: "play",
 			},
 		});
 
 		bot.logger.error(e);
 
 		interaction.reply({
-			content: 'Music player is not ready yet. Try again later.',
+			content: "Music player is not ready yet. Try again later.",
 			ephemeral: true,
 		});
 

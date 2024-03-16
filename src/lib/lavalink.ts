@@ -1,6 +1,6 @@
-import { Client } from 'discord.js';
-import { Manager } from 'magmastream';
-import { env } from '~/env';
+import type { Client } from "discord.js";
+import { Manager } from "magmastream";
+import { env } from "~/env";
 
 export function createLavalink(client: Client) {
 	return new Manager({

@@ -1,8 +1,8 @@
-import * as Sentry from '@sentry/bun';
-import { createListener } from '~/factories/listener';
+import * as Sentry from "@sentry/bun";
+import { createListener } from "~/factories/listener";
 
 export default createListener({
-	event: 'nodeError',
+	event: "nodeError",
 
 	execute(bot, node, error) {
 		Sentry.captureException(error);
