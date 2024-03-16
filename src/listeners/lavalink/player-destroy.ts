@@ -6,6 +6,8 @@ export default createListener({
 	execute(bot, player) {
 		bot.logger.debug("Player destroyed for %s", player.guild);
 
-		player.nowPlayingMessage?.delete();
+		if (player.nowPlayingMessage && !player.nowPlayingMessage.deleted) {
+			player.nowPlayingMessage.delete();
+		}
 	},
 });
