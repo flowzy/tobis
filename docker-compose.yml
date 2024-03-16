@@ -1,19 +1,19 @@
 services:
   bot:
     container_name: ${DOCKER_PREFIX}bot
-    image: oven/bun:latest
-    restart: on-failure
+    image: oven/bun:1.0.31
+    restart: always
     volumes:
       - .:/home/bun/app
-    command: /bin/sh -c 'bun install && bun --watch run index.ts'
+    command: bun --watch run index.ts
     tty: true
     depends_on:
       - lavalink
 
   lavalink:
     container_name: ${DOCKER_PREFIX}lavalink
-    image: ghcr.io/lavalink-devs/lavalink:ab0cae4-alpine
-    restart: unless-stopped
+    image: ghcr.io/lavalink-devs/lavalink:4.0.4
+    restart: always
     expose:
       - ${LAVALINK_PORT}
     environment:
