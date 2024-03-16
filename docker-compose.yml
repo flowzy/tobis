@@ -5,7 +5,7 @@ services:
     restart: always
     volumes:
       - .:/home/bun/app
-    command: bun --watch run index.ts
+    command: /bin/sh -c 'bun install && bun run index.ts'
     tty: true
     depends_on:
       - lavalink
