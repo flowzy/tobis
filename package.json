@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@sentry/bun": "^7.107.0",
-		"@t3-oss/env-core": "^0.9.2",
+		"@t3-oss/env-core": "^0.10.1",
 		"discord.js": "^14.14.1",
 		"glob": "^10.3.10",
 		"magmastream": "^2.3.1",
