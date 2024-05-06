@@ -8,7 +8,7 @@
 		"check": "tsc"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.7.1",
+		"@biomejs/biome": "1.7.2",
 		"@types/bun": "^1.0.8",
 		"lefthook": "^1.6.7",
 		"typescript": "^5.4.2"
