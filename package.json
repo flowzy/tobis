@@ -14,7 +14,7 @@
 		"typescript": "^5.4.2"
 	},
 	"dependencies": {
-		"@sentry/bun": "^7.107.0",
+		"@sentry/bun": "^8.8.0",
 		"@t3-oss/env-core": "^0.10.1",
 		"discord.js": "^14.14.1",
 		"glob": "^10.3.10",
