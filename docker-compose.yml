@@ -12,7 +12,7 @@ services:
 
   lavalink:
     container_name: ${DOCKER_PREFIX}lavalink
-    image: ghcr.io/lavalink-devs/lavalink:v4-update-lp
+    image: ghcr.io/lavalink-devs/lavalink:4.0.6
     restart: always
     expose:
       - ${LAVALINK_PORT}
@@ -20,7 +20,6 @@ services:
       - SERVER_HOST=0.0.0.0
       - SERVER_PORT=${LAVALINK_PORT}
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
-      - SENTRY_DSN=${SENTRY_DSN}
 
 networks:
   default:
