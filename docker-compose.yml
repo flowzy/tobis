@@ -12,7 +12,7 @@ services:
 
   lavalink:
     container_name: ${DOCKER_PREFIX}lavalink
-    image: ghcr.io/lavalink-devs/lavalink:4.0.4
+    image: ghcr.io/lavalink-devs/lavalink:v4-update-lp
     restart: always
     expose:
       - ${LAVALINK_PORT}
