@@ -9,7 +9,7 @@ export default createCommand({
 		.setName("stop")
 		.setDescription("Stop playing and clear queue"),
 
-	execute(bot, interaction) {
+	async execute(bot, interaction) {
 		if (!isInVoiceChannel(interaction)) {
 			return;
 		}
@@ -24,15 +24,22 @@ export default createCommand({
 
 		player.destroy(true);
 
-		interaction.reply({
-			embeds: [
-				new EmbedBuilder()
-					.setColor(EMBED_COLOR_INFO)
-					.setDescription(
-						`Disconnected from <#${interaction.member.voice.channel?.id}>`,
-					)
-					.setFooter({ text: `Skipped ${queueSize} tracks` }),
-			],
+		if (!interaction.member.voice.channel) {
+			return;
+		}
+
+		const embed = new EmbedBuilder()
+			.setColor(EMBED_COLOR_INFO)
+			.setDescription(
+				`Disconnected from <#${interaction.member.voice.channel.id}>`,
+			);
+
+		if (queueSize) {
+			embed.setFooter({ text: `Skipped ${queueSize} tracks` });
+		}
+
+		await interaction.reply({
+			embeds: [embed],
 		});
 	},
 });

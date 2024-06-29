@@ -1,7 +1,7 @@
 include .env
 
 dev:
-	@docker compose up --pull always -d
+	@docker compose -f docker-compose.yml -f docker-compose.dev.yml up --pull always -d
 
 prod:
 	@docker compose -f docker-compose.yml -f docker-compose.prod.yml up --pull always -d

@@ -1,17 +1,22 @@
 import {
 	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
 	type ChatInputCommandInteraction,
-	type ComponentType,
-	type EmbedBuilder,
+	ComponentType,
+	EmbedBuilder,
 	PermissionsBitField,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
-import type { SearchPlatform, SearchResult } from "magmastream";
+import type { PlaylistData, SearchPlatform, SearchResult } from "magmastream";
+import { EMBED_COLOR_INFO } from "~/config/color.ts";
+import { PROMPT_DISPLAY_TIME_SECONDS } from "~/config/constants.ts";
 import { createCommand } from "~/factories/command";
 import { createPlayer, startPlaying } from "~/helpers/player";
 import type { Bot } from "~/interfaces/bot";
+import { logger } from "~/lib/logger.ts";
 import { createEnqueuedPlaylistEmbed } from "~/messages/enqueued-playlist";
 import { createEnqueuedTrackEmbed } from "~/messages/enqueued-track";
 import { createErrorMessage } from "~/messages/error";
@@ -64,13 +69,13 @@ export default createCommand({
 				query,
 				source,
 			},
-			interaction.member,
+			interaction.user,
 		);
 
 		if (result.loadType === "error") {
 			return interaction.editReply(
 				createErrorMessage({
-					message: "Something went wrong... Please try again later",
+					message: "Could not find any results. Try again later",
 				}),
 			);
 		}
@@ -85,7 +90,7 @@ export default createCommand({
 		}
 
 		if (result.loadType === "search") {
-			return prompt(bot, interaction, result);
+			return promptSelect(bot, interaction, result);
 		}
 
 		let embed: EmbedBuilder;
@@ -103,16 +108,14 @@ export default createCommand({
 			case "playlist": {
 				// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
 				const playlist = result.playlist!;
-				player.queue.add(playlist.tracks);
 
-				embed = createEnqueuedPlaylistEmbed(playlist, query, player.queue);
-				break;
+				return promptConfirm(bot, interaction, playlist, query);
 			}
 		}
 
 		await startPlaying(player);
 
-		interaction.editReply({
+		await interaction.editReply({
 			embeds: [embed],
 		});
 	},
@@ -125,16 +128,21 @@ export default createCommand({
  * @param result
  * @returns
  */
-async function prompt(
+async function promptSelect(
 	bot: Bot,
 	interaction: ChatInputCommandInteraction<"cached">,
 	result: SearchResult,
 ) {
+	const cancel = new ButtonBuilder()
+		.setLabel("Cancel")
+		.setCustomId("cancel")
+		.setStyle(ButtonStyle.Secondary);
+
 	const select = new StringSelectMenuBuilder()
 		.setCustomId("track-select")
 		.setPlaceholder("Select a track to play");
 
-	const options = result.tracks.map((track, index) => {
+	const options = result.tracks.slice(0, 10).map((track, index) => {
 		return new StringSelectMenuOptionBuilder()
 			.setLabel(track.title)
 			.setDescription(`${formatDuration(track.duration)} • ${track.author}`)
@@ -147,18 +155,25 @@ async function prompt(
 		select,
 	);
 
+	const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(cancel);
+
 	const prompt = await interaction.editReply({
-		components: [row],
+		components: [row, actionRow],
 	});
 
-	const PROMPT_DISPLAY_TIME_SECONDS = 45;
-
 	try {
-		const confirmation =
-			await prompt.awaitMessageComponent<ComponentType.StringSelect>({
-				filter: (i) => i.user.id === interaction.user.id,
-				time: PROMPT_DISPLAY_TIME_SECONDS * 1_000,
-			});
+		const confirmation = await prompt.awaitMessageComponent<
+			ComponentType.StringSelect | ComponentType.Button
+		>({
+			filter: (i) => i.user.id === interaction.user.id,
+			time: PROMPT_DISPLAY_TIME_SECONDS * 1_000,
+		});
+
+		if (confirmation.componentType === ComponentType.Button) {
+			await prompt.delete();
+			logger.debug("User cancelled track selection");
+			return;
+		}
 
 		const trackIndex = Number(confirmation.values.at(0));
 		// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
@@ -172,6 +187,82 @@ async function prompt(
 		player.queue.add(track);
 
 		const embed = createEnqueuedTrackEmbed(track, player.queue);
+
+		await confirmation.update({
+			embeds: [embed],
+			components: [],
+		});
+
+		await startPlaying(player);
+	} catch {
+		await prompt.delete();
+	}
+}
+
+async function promptConfirm(
+	bot: Bot,
+	interaction: ChatInputCommandInteraction<"cached">,
+	playlist: PlaylistData,
+	query: string,
+) {
+	const confirm = new ButtonBuilder()
+		.setLabel("Yes")
+		.setCustomId("confirm")
+		.setStyle(ButtonStyle.Success);
+	const cancel = new ButtonBuilder()
+		.setLabel("Cancel")
+		.setCustomId("cancel")
+		.setStyle(ButtonStyle.Secondary);
+
+	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+		confirm,
+		cancel,
+	);
+
+	const promptEmbed = new EmbedBuilder()
+		.setColor(EMBED_COLOR_INFO)
+		.setAuthor({ name: "Enqueue playlist?" })
+		.setTitle(playlist.name)
+		.setDescription("Do you want to add this playlist to the queue?")
+		.addFields(
+			{
+				name: "Tracks",
+				value: `\`${playlist.tracks.length.toString()}\``,
+				inline: true,
+			},
+			{
+				name: "Duration",
+				value: `\`${formatDuration(playlist.duration)}\``,
+				inline: true,
+			},
+		);
+
+	// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
+	const firstTrack = playlist.tracks.at(0)!;
+
+	promptEmbed.setThumbnail(firstTrack.displayThumbnail("mqdefault"));
+
+	const prompt = await interaction.editReply({
+		embeds: [promptEmbed],
+		components: [row],
+	});
+
+	try {
+		const confirmation =
+			await prompt.awaitMessageComponent<ComponentType.Button>({
+				filter: (i) => i.user.id === interaction.user.id,
+				time: PROMPT_DISPLAY_TIME_SECONDS * 1_000,
+			});
+
+		const player = createPlayer(bot, interaction);
+
+		if (!player) {
+			return;
+		}
+
+		player.queue.add(playlist.tracks);
+
+		const embed = createEnqueuedPlaylistEmbed(playlist, query, player.queue);
 
 		await confirmation.update({
 			embeds: [embed],

@@ -6,6 +6,6 @@ export default createListener({
 	event: Events.Raw,
 
 	execute(bot, data: VoicePacket) {
-		bot.lavalink.updateVoiceState(data);
+		void bot.lavalink.updateVoiceState(data);
 	},
 });

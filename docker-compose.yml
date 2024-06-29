@@ -1,7 +1,7 @@
 services:
   bot:
     container_name: ${DOCKER_PREFIX}bot
-    image: oven/bun:1.0.31
+    image: oven/bun:1.1.17
     restart: always
     volumes:
       - .:/home/bun/app
@@ -20,6 +20,7 @@ services:
       - SERVER_HOST=0.0.0.0
       - SERVER_PORT=${LAVALINK_PORT}
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+      - SENTRY_DSN=${SENTRY_DSN}
 
 networks:
   default:

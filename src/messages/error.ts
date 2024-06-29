@@ -1,4 +1,4 @@
-import { EmbedBuilder, type MessageCreateOptions } from "discord.js";
+import { EmbedBuilder, type InteractionReplyOptions } from "discord.js";
 import { EMBED_COLOR_ERROR } from "~/config/color";
 
 export function createErrorMessage({
@@ -9,7 +9,7 @@ export function createErrorMessage({
 	title?: string;
 	message: string;
 	footer?: string;
-}): MessageCreateOptions {
+}): InteractionReplyOptions {
 	const embed = new EmbedBuilder()
 		.setColor(EMBED_COLOR_ERROR)
 		.setAuthor({ name: title })

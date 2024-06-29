@@ -3,6 +3,7 @@ import { Events } from "discord.js";
 import { env } from "~/env";
 import { createListener } from "~/factories/listener";
 import type { Command } from "~/interfaces/command";
+import { createErrorMessage } from "~/messages/error.ts";
 
 export default createListener({
 	event: Events.InteractionCreate,
@@ -13,6 +14,7 @@ export default createListener({
 
 		if (
 			env.NODE_ENV === "development" &&
+			env.BOT_OWNER_ID &&
 			env.BOT_OWNER_ID !== interaction.user.id
 		) {
 			return interaction.reply({
@@ -55,19 +57,21 @@ export default createListener({
 
 			bot.logger.error(e);
 
-			const message = "Something went wrong. Please try again later.";
+			const message = createErrorMessage({
+				message: "Something went wrong. Please try again later.",
+			});
 
 			if (interaction.replied || interaction.deferred) {
-				interaction.followUp({
-					content: message,
+				await interaction.followUp({
+					...message,
 					ephemeral: true,
 				});
 
 				return;
 			}
 
-			interaction.reply({
-				content: message,
+			await interaction.reply({
+				...message,
 				ephemeral: true,
 			});
 		}

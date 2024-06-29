@@ -33,13 +33,13 @@ export async function createBot(client: Client<true>) {
 	await attachListeners(bot);
 
 	logger.info("Logging in...");
-	bot.client.login(env.BOT_TOKEN);
+	void bot.client.login(env.BOT_TOKEN);
 
 	return () => cleanup(bot);
 }
 
 async function cleanup(bot: Bot) {
-	logger.info("Shutting down...");
+	logger.info("Gracefully shutting down...");
 
 	bot.client.user?.setStatus("invisible");
 
@@ -76,7 +76,7 @@ async function attachListeners(bot: Bot) {
 		const target = clientFiles.includes(file) ? "client" : "lavalink";
 
 		// biome-ignore lint/suspicious/noExplicitAny: TODO: fix this
-		const wrappedExecute = (...args: any[]) => {
+		const handler = (...args: any[]) => {
 			try {
 				listener.execute(bot, ...args);
 			} catch (e) {
@@ -91,9 +91,9 @@ async function attachListeners(bot: Bot) {
 		};
 
 		if (target === "client") {
-			bot.client[type](listener.event, wrappedExecute);
-		} else {
-			bot.lavalink[type](listener.event, wrappedExecute);
+			bot.client[type](listener.event, handler);
+		} else if (type === "on") {
+			bot.lavalink.on(listener.event, handler);
 		}
 	}
 }
