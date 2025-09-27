@@ -1,8 +1,7 @@
 .idea
 .vscode
 
-.cache
-lavalink
-bot.config.yml
+lavalink/*
+config/*
 
 node_modules

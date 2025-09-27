@@ -1,9 +1,9 @@
 {
 	"name": "tobis",
 	"type": "module",
-	"module": "main.ts",
+	"module": "app/main.ts",
 	"scripts": {
-		"dev": "bun run --watch main.ts",
+		"dev": "bun run --watch app/main.ts",
 		"format": "biome format --write .",
 		"lint": "biome lint .",
 		"check": "tsgo"
@@ -12,8 +12,7 @@
 		"@biomejs/biome": "^2.2.4",
 		"@types/bun": "^1.2.22",
 		"@typescript/native-preview": "latest",
-		"lefthook": "^1.13.4",
-		"typescript": "latest"
+		"lefthook": "^1.13.4"
 	},
 	"dependencies": {
 		"@sentry/bun": "^10.15.0",
