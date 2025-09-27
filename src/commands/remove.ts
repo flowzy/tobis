@@ -1,5 +1,5 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { EMBED_COLOR_SUCCESS } from "~/config/color";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { EmbedColor } from "~/constants/color";
 import { createCommand } from "~/factories/command";
 import { getExistingPlayer } from "~/helpers/player";
 import { formatDuration } from "~/utils/format";
@@ -15,7 +15,7 @@ export default createCommand({
 				.setRequired(true),
 		),
 
-	execute(bot, interaction) {
+	async execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player) {
@@ -23,35 +23,36 @@ export default createCommand({
 		}
 
 		if (!player.queue.size) {
-			interaction.reply({
+			await interaction.reply({
 				content: "Queue is empty",
-				ephemeral: true,
+				flags: [MessageFlags.Ephemeral],
 			});
 
 			return;
 		}
 
-		const index = Math.min(
-			player.queue.size - 1,
-			Math.max(0, interaction.options.getNumber("position", true) - 1),
-		);
+		const position = interaction.options.getNumber("position", true);
+		const track = player.queue.tracks[position - 1];
 
-		// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
-		const track = player.queue.at(index)!;
-
-		player.queue.remove(index);
+		await player.queue.remove(position);
 
 		const embed = new EmbedBuilder()
-			.setColor(EMBED_COLOR_SUCCESS)
+			.setColor(EmbedColor.Primary)
 			.setAuthor({ name: "Removed from queue" })
 			.setTitle(track.title)
-			.setURL(track.uri ?? null)
-			.setThumbnail(track.displayThumbnail?.("mqdefault") ?? null)
 			.addFields({
 				name: "Requested by",
-				value: `${track.requester}`,
+				value: `${track.requestedBy}`,
 				inline: true,
 			});
+
+		if (track.url) {
+			embed.setURL(track.url);
+		}
+
+		if (track.artworkUrl) {
+			embed.setThumbnail(track.artworkUrl);
+		}
 
 		if (track.duration) {
 			embed.addFields({
@@ -63,11 +64,11 @@ export default createCommand({
 
 		embed.addFields({
 			name: "Position",
-			value: `\`${index + 1}\``,
+			value: `\`${position}\``,
 			inline: true,
 		});
 
-		interaction.reply({
+		await interaction.reply({
 			embeds: [embed],
 		});
 	},

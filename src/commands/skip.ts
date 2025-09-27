@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
+import { createInfoEmbed } from "~/embeds/info";
 import { createCommand } from "~/factories/command";
-import { isInSameVoiceChannel, isInVoiceChannel } from "~/helpers/interaction";
+import { isInSameVoiceChannel } from "~/helpers/interaction";
 import { getExistingPlayer } from "~/helpers/player";
 
 export default createCommand({
@@ -8,23 +9,24 @@ export default createCommand({
 		.setName("skip")
 		.setDescription("Skips the current track"),
 
-	execute(bot, interaction) {
-		if (!isInVoiceChannel(interaction)) {
-			return;
-		}
-
+	async execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player || !isInSameVoiceChannel(interaction, player)) {
 			return;
 		}
 
-		if (player.queue.size) {
-			player.queue.previous = player.queue.current;
-		}
+		const track = player.current;
 
-		player.stop();
+		await player.skip();
 
-		interaction.reply("Skipped.");
+		await interaction.reply({
+			embeds: [
+				createInfoEmbed({
+					title: "Track Skipped",
+					message: `[**${track.title}**](${track.url}) has been skipped`,
+				}),
+			],
+		});
 	},
 });

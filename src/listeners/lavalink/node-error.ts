@@ -1,15 +1,17 @@
 import * as Sentry from "@sentry/bun";
+import type { INode } from "moonlink.js";
 import { createListener } from "~/factories/listener";
+import { logger } from "~/lib/logger";
 
 export default createListener({
 	event: "nodeError",
 
-	execute(bot, node, error) {
+	execute(_, node: INode, error: Error) {
 		Sentry.captureException(error);
 
-		bot.logger.error(
+		logger.error(
 			'Lavalink node "%s" encountered an error: %s',
-			node.options.identifier,
+			node.host,
 			error.message,
 		);
 	},

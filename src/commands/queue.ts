@@ -1,7 +1,8 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import ms from "pretty-ms";
-import { EMBED_COLOR_INFO } from "~/config/color";
+import { EmbedColor } from "~/constants/color";
 import { createCommand } from "~/factories/command";
+import { requestorMention } from "~/helpers/mention";
 import { getExistingPlayer } from "~/helpers/player";
 import { formatDuration } from "~/utils/format";
 
@@ -10,7 +11,7 @@ export default createCommand({
 		.setName("queue")
 		.setDescription("Get current queue"),
 
-	execute(bot, interaction) {
+	async execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player) {
@@ -18,40 +19,42 @@ export default createCommand({
 		}
 
 		if (!player.queue.size) {
-			interaction.reply({
+			await interaction.reply({
 				content: "Queue is empty",
-				ephemeral: true,
+				flags: [MessageFlags.Ephemeral],
 			});
 
 			return;
 		}
 
-		const queue: string[] = [];
+		const visibleQueue: string[] = [];
 
 		const embed = new EmbedBuilder()
-			.setColor(EMBED_COLOR_INFO)
+			.setColor(EmbedColor.Info)
 			.setAuthor({ name: "Queue" });
 
-		for (const [index, track] of player.queue.entries()) {
+		for (const index in player.queue.tracks.slice(0, 9)) {
+			const track = player.queue.tracks[index];
+
 			const row = [
 				`${index + 1}.`,
-				track.uri ? `[${track.title}](${track.uri})` : track.title,
+				`**${track.url ? `[${track.title}](${track.url})` : track.title}**`,
 				track.duration ? `(${formatDuration(track.duration)}) ` : "",
-				`\t${track.requester}`,
+				`\t${requestorMention(track.requestedBy)}`,
 			];
 
-			queue.push(row.join(" "));
+			visibleQueue.push(row.join(" "));
 		}
 
-		embed.setDescription(queue.join("\n")).setFooter({
-			text: `${player.queue.size} tracks in queue · ${ms(
-				player.queue.duration - (player.queue.current?.duration ?? 0),
+		embed.setDescription(visibleQueue.join("\n")).setFooter({
+			text: `${player.queue.size} tracks in queue · about ${ms(
+				player.queue.duration,
 			)} total length`,
 		});
 
-		interaction.reply({
-			ephemeral: true,
+		await interaction.reply({
 			embeds: [embed],
+			flags: [MessageFlags.Ephemeral],
 		});
 	},
 });

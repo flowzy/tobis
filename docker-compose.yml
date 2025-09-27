@@ -1,25 +1,25 @@
 services:
   bot:
-    container_name: ${DOCKER_PREFIX}bot
-    image: oven/bun:1.1.17
+    container_name: bot
+    image: oven/bun:1.2.22
     restart: always
     volumes:
       - .:/home/bun/app
-    command: /bin/sh -c 'bun install && bun run index.ts'
-    tty: true
+    entrypoint: bun run --install=auto main.ts
     depends_on:
       - lavalink
 
   lavalink:
-    container_name: ${DOCKER_PREFIX}lavalink
+    container_name: lavalink
     image: ghcr.io/lavalink-devs/lavalink:4.0.6
     restart: always
-    expose:
-      - ${LAVALINK_PORT}
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml
+    ports:
+      - "2333:2333"
     environment:
       - SERVER_HOST=0.0.0.0
-      - SERVER_PORT=${LAVALINK_PORT}
-      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+      - SERVER_PORT=2333
 
 networks:
   default:

@@ -7,18 +7,17 @@ export default createCommand({
 		.setName("resume")
 		.setDescription("Resumes the current track"),
 
-	execute(bot, interaction) {
+	async execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player) {
 			return;
 		}
 
-		player.pause(false);
+		player.pause();
 
-		interaction.reply({
+		await interaction.reply({
 			content: "Resumed.",
-			ephemeral: true,
 		});
 	},
 });

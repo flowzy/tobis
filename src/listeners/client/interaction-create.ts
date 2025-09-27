@@ -1,9 +1,10 @@
 import * as Sentry from "@sentry/bun";
-import { Events } from "discord.js";
-import { env } from "~/env";
+import { Events, MessageFlags } from "discord.js";
+import { config } from "~/config";
+import { createErrorEmbed } from "~/embeds/error.ts";
 import { createListener } from "~/factories/listener";
 import type { Command } from "~/interfaces/command";
-import { createErrorMessage } from "~/messages/error.ts";
+import { logger } from "~/lib/logger";
 
 export default createListener({
 	event: Events.InteractionCreate,
@@ -13,26 +14,26 @@ export default createListener({
 		if (!interaction.inCachedGuild()) return;
 
 		if (
-			env.NODE_ENV === "development" &&
-			env.BOT_OWNER_ID &&
-			env.BOT_OWNER_ID !== interaction.user.id
+			config.mode === "development" &&
+			config.bot.owner_id &&
+			config.bot.owner_id !== interaction.user.id
 		) {
 			return interaction.reply({
-				content: "You are not allowed to use this bot in development mode",
-				ephemeral: true,
+				content: "You are not allowed to use this bot at the moment.",
+				flags: [MessageFlags.Ephemeral],
 			});
 		}
 
-		const command: Command | undefined = bot.commands.get(
+		const command: Command | undefined = bot.commands?.get(
 			interaction.commandName,
 		);
 
 		if (!command) {
-			bot.logger.warn(`Command "${interaction.commandName}" not found`);
+			logger.warn('Command "%s" not found', interaction.commandName);
 
 			return interaction.reply({
 				content: "Unknown command",
-				ephemeral: true,
+				flags: [MessageFlags.Ephemeral],
 			});
 		}
 
@@ -42,7 +43,7 @@ export default createListener({
 		) {
 			return interaction.reply({
 				content: "You do not have permission to use this command",
-				ephemeral: true,
+				flags: [MessageFlags.Ephemeral],
 			});
 		}
 
@@ -55,24 +56,22 @@ export default createListener({
 				},
 			});
 
-			bot.logger.error(e);
+			logger.error(e);
 
-			const message = createErrorMessage({
+			const embed = createErrorEmbed({
 				message: "Something went wrong. Please try again later.",
 			});
 
 			if (interaction.replied || interaction.deferred) {
-				await interaction.followUp({
-					...message,
-					ephemeral: true,
+				return interaction.followUp({
+					embeds: [embed],
+					flags: [MessageFlags.Ephemeral],
 				});
-
-				return;
 			}
 
-			await interaction.reply({
-				...message,
-				ephemeral: true,
+			return interaction.reply({
+				embeds: [embed],
+				flags: [MessageFlags.Ephemeral],
 			});
 		}
 	},

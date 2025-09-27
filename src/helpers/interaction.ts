@@ -1,8 +1,9 @@
-import type {
-	ChatInputCommandInteraction,
-	VoiceBasedChannel,
+import {
+	type ChatInputCommandInteraction,
+	MessageFlags,
+	type VoiceBasedChannel,
 } from "discord.js";
-import type { Player } from "magmastream";
+import type { Player } from "moonlink.js";
 
 /**
  * Checks whether the user is in a voice channel.
@@ -14,16 +15,22 @@ export function isInVoiceChannel(
 ): interaction is ChatInputCommandInteraction<"cached"> & {
 	member: { voice: { channel: VoiceBasedChannel } };
 } {
-	const isInVoiceChannel = Boolean(interaction.member.voice.channel?.id);
+	if (interaction.member.voice.channel?.id) {
+		return true;
+	}
 
-	if (!isInVoiceChannel) {
-		interaction.reply({
+	if (interaction.deferred) {
+		void interaction.editReply({
 			content: "You must be in a voice channel to use this command",
-			ephemeral: true,
+		});
+	} else if (interaction.isRepliable()) {
+		void interaction.reply({
+			content: "You must be in a voice channel to use this command",
+			flags: [MessageFlags.Ephemeral],
 		});
 	}
 
-	return isInVoiceChannel;
+	return false;
 }
 
 /**
@@ -35,19 +42,31 @@ export function isInVoiceChannel(
  */
 export function isInSameVoiceChannel(
 	interaction: ChatInputCommandInteraction<"cached">,
-	player: Player,
+	player: Player | undefined,
 ): interaction is ChatInputCommandInteraction<"cached"> & {
 	member: { voice: { channel: VoiceBasedChannel } };
 } {
-	const isInSameVoiceChannel =
-		player.voiceChannel === interaction.member.voice.channel?.id;
+	if (!isInVoiceChannel(interaction)) {
+		return false;
+	}
 
-	if (!isInSameVoiceChannel) {
-		interaction.reply({
-			content: `You must be in the same voice channel as me - <#${player.voiceChannel}>`,
-			ephemeral: true,
+	if (
+		!player ||
+		player.voiceChannelId === interaction.member.voice.channel?.id
+	) {
+		return true;
+	}
+
+	if (interaction.deferred) {
+		void interaction.editReply({
+			content: `You must be in the same voice channel as me - <#${player.voiceChannelId}>`,
+		});
+	} else if (interaction.isRepliable()) {
+		void interaction.reply({
+			content: `You must be in the same voice channel as me - <#${player.voiceChannelId}>`,
+			flags: [MessageFlags.Ephemeral],
 		});
 	}
 
-	return isInSameVoiceChannel;
+	return false;
 }

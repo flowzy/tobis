@@ -1,29 +1,45 @@
-import type { TextBasedChannelFields } from "discord.js";
-import { env } from "~/env";
+import { EmbedBuilder } from "discord.js";
+import type { Player } from "moonlink.js";
+import ms from "pretty-ms";
+import { config } from "~/config";
+import { EmbedColor } from "~/constants/color";
 import { createListener } from "~/factories/listener";
-import { createQueueEndedEmbed } from "~/messages/queue-ended";
 
 export default createListener({
 	event: "queueEnd",
 
-	execute(bot, player) {
-		bot.logger.debug("Queue ended for player %s", player.guild);
+	async execute(bot, player: Player) {
+		await bot.nowPlaying.remove(player);
 
-		if (!player.textChannel) return;
+		const channel = bot.client.channels.cache.get(player.textChannelId);
 
-		const channel = bot.client.channels.cache.get(player.textChannel) as
-			| TextBasedChannelFields<true>
-			| undefined;
+		if (channel?.isSendable()) {
+			const embed = new EmbedBuilder()
+				.setColor(EmbedColor.Info)
+				.setAuthor({ name: "Queue ended" })
+				.setDescription("Type `/play` to add a new track to play");
 
-		channel?.send({
-			embeds: [createQueueEndedEmbed()],
-		});
+			if (config.voice.idle_auto_disconnect) {
+				embed.setFooter({
+					text: `Leaving voice channel in ${ms(
+						config.voice.idle_disconnect_seconds * 1_000,
+					)}`,
+				});
+			}
 
-		if (env.BOT_IDLE_AUTO_DISCONNECT) {
-			player.timeout = setTimeout(
-				() => player.destroy(true),
-				env.BOT_IDLE_DISCONNECT_SECONDS * 1_000,
-			);
+			await channel.send({
+				embeds: [embed],
+			});
 		}
+
+		if (!config.voice.idle_auto_disconnect) {
+			return;
+		}
+
+		setTimeout(() => {
+			if (!player.playing && !player.queue.size) {
+				player.destroy("idle");
+			}
+		}, config.voice.idle_disconnect_seconds * 1_000);
 	},
 });

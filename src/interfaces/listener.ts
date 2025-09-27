@@ -1,5 +1,5 @@
 import type { ClientEvents } from "discord.js";
-import type { Bot } from "./bot";
+import type { Bot } from "~/bot";
 
 // TODO: add support for lavalink events
 export type ListenerEvent = keyof ClientEvents | ({} & string);

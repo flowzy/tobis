@@ -10,17 +10,16 @@ import {
 	StringSelectMenuBuilder,
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
-import type { PlaylistData, SearchPlatform, SearchResult } from "magmastream";
-import { EMBED_COLOR_INFO } from "~/config/color.ts";
-import { PROMPT_DISPLAY_TIME_SECONDS } from "~/config/constants.ts";
+import type { SearchResult } from "moonlink.js";
+import type { Bot } from "~/bot";
+import { EmbedColor } from "~/constants/color";
+import { createEnqueuedPlaylistEmbed } from "~/embeds/enqueued-playlist";
+import { createEnqueuedTrackEmbed } from "~/embeds/enqueued-track";
+import { createErrorEmbed } from "~/embeds/error";
+import { createInfoEmbed } from "~/embeds/info";
 import { createCommand } from "~/factories/command";
 import { createPlayer, startPlaying } from "~/helpers/player";
-import type { Bot } from "~/interfaces/bot";
-import { logger } from "~/lib/logger.ts";
-import { createEnqueuedPlaylistEmbed } from "~/messages/enqueued-playlist";
-import { createEnqueuedTrackEmbed } from "~/messages/enqueued-track";
-import { createErrorMessage } from "~/messages/error";
-import { createInfoMessage } from "~/messages/info";
+import { logger } from "~/lib/logger";
 import { formatDuration } from "~/utils/format";
 
 export default createCommand({
@@ -33,15 +32,19 @@ export default createCommand({
 				.setDescription("Search for a track or paste in a URL")
 				.setRequired(true),
 		)
+		.addBooleanOption((option) =>
+			option
+				.setName("autoplay")
+				.setDescription("Play similar tracks when the queue ends"),
+		)
 		.addStringOption((option) =>
 			option
 				.setName("source")
 				.setDescription("Where to search track")
 				.addChoices(
-					{ name: "YouTube", value: "youtube" as SearchPlatform },
-					{ name: "YouTube Music", value: "youtube music" as SearchPlatform },
-					{ name: "Soundcloud", value: "soundcloud" as SearchPlatform },
-					{ name: "Deezer", value: "deezer" as SearchPlatform },
+					{ name: "YouTube", value: "youtube" },
+					{ name: "Soundcloud", value: "soundcloud" },
+					{ name: "Spotify", value: "spotify" },
 				),
 		),
 
@@ -51,12 +54,6 @@ export default createCommand({
 	],
 
 	async execute(bot, interaction) {
-		const player = createPlayer(bot, interaction);
-
-		if (!player) {
-			return;
-		}
-
 		if (!interaction.deferred) {
 			await interaction.deferReply();
 		}
@@ -64,62 +61,73 @@ export default createCommand({
 		const query = interaction.options.getString("query", true);
 		const source = interaction.options.getString("source") ?? undefined;
 
-		const result = await bot.lavalink.search(
-			{
-				query,
-				source,
-			},
-			interaction.user,
-		);
-
-		if (result.loadType === "error") {
-			return interaction.editReply(
-				createErrorMessage({
-					message: "Could not find any results. Try again later",
-				}),
-			);
-		}
-
-		if (result.loadType === "empty") {
-			return interaction.editReply(
-				createInfoMessage({
-					title: "No results found",
-					message: "Try a different search term or URL",
-				}),
-			);
-		}
-
-		if (result.loadType === "search") {
-			return promptSelect(bot, interaction, result);
-		}
-
-		let embed: EmbedBuilder;
-
-		switch (result.loadType) {
-			case "track": {
-				// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
-				const track = result.tracks.at(0)!;
-				player.queue.add(result.tracks);
-
-				embed = createEnqueuedTrackEmbed(track, player.queue);
-				break;
-			}
-
-			case "playlist": {
-				// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
-				const playlist = result.playlist!;
-
-				return promptConfirm(bot, interaction, playlist, query);
-			}
-		}
-
-		await startPlaying(player);
-
-		await interaction.editReply({
-			embeds: [embed],
-		});
+		await search(bot, interaction, query, source);
 	},
 });
+
+async function search(
+	bot: Bot,
+	interaction: ChatInputCommandInteraction<"cached">,
+	query: string,
+	source: string | undefined,
+) {
+	const player = createPlayer(bot, interaction);
+
+	if (!player) {
+		return;
+	}
+
+	const result = await bot.lavalink.search({
+		query,
+		source,
+		requester: interaction.user.id,
+		limit: 10,
+	});
+
+	switch (result.loadType) {
+		case "search": {
+			return prompt(bot, interaction, result);
+		}
+
+		case "empty": {
+			return interaction.editReply({
+				embeds: [
+					createInfoEmbed({
+						title: "No results found",
+						message: "Try a different search term or URL",
+					}),
+				],
+			});
+		}
+
+		case "error": {
+			return interaction.editReply({
+				embeds: [
+					createErrorEmbed({
+						title: "An error occurred",
+						message:
+							result.error ?? "Could not find any results. Try again later",
+					}),
+				],
+			});
+		}
+
+		case "track": {
+			await player.queue.add(result.tracks);
+			await startPlaying(player);
+
+			return interaction.editReply({
+				embeds: [createEnqueuedTrackEmbed(result, player.queue)],
+			});
+		}
+
+		case "playlist": {
+			return confirm(bot, interaction, result, query);
+		}
+	}
+}
+
+export const PROMPT_DISPLAY_TIME_SECONDS = 45;
 
 /**
  * Prompt the user to select a track from the search results.
@@ -128,7 +136,7 @@ export default createCommand({
  * @param result
  * @returns
  */
-async function promptSelect(
+async function prompt(
 	bot: Bot,
 	interaction: ChatInputCommandInteraction<"cached">,
 	result: SearchResult,
@@ -175,18 +183,26 @@ async function promptSelect(
 			return;
 		}
 
-		const trackIndex = Number(confirmation.values.at(0));
-		// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
-		const track = result.tracks.at(Number(trackIndex))!;
 		const player = createPlayer(bot, interaction);
 
 		if (!player) {
 			return;
 		}
 
-		player.queue.add(track);
+		const trackIndex = parseInt(confirmation.values.at(0) ?? "", 10);
+		const track = result.tracks[trackIndex];
 
-		const embed = createEnqueuedTrackEmbed(track, player.queue);
+		if (!track) {
+			await confirmation.update({
+				embeds: [createErrorEmbed({ message: "Track not found" })],
+				components: [],
+			});
+			return;
+		}
+
+		await player.queue.add(track);
+
+		const embed = createEnqueuedTrackEmbed(result, player.queue);
 
 		await confirmation.update({
 			embeds: [embed],
@@ -199,10 +215,10 @@ async function promptSelect(
 	}
 }
 
-async function promptConfirm(
+async function confirm(
 	bot: Bot,
 	interaction: ChatInputCommandInteraction<"cached">,
-	playlist: PlaylistData,
+	result: SearchResult,
 	query: string,
 ) {
 	const confirm = new ButtonBuilder()
@@ -220,27 +236,28 @@ async function promptConfirm(
 	);
 
 	const promptEmbed = new EmbedBuilder()
-		.setColor(EMBED_COLOR_INFO)
+		.setColor(EmbedColor.Info)
 		.setAuthor({ name: "Enqueue playlist?" })
-		.setTitle(playlist.name)
+		.setTitle(result.playlistInfo.name)
 		.setDescription("Do you want to add this playlist to the queue?")
 		.addFields(
 			{
 				name: "Tracks",
-				value: `\`${playlist.tracks.length.toString()}\``,
+				value: `\`${result.tracks.length.toString()}\``,
 				inline: true,
 			},
 			{
 				name: "Duration",
-				value: `\`${formatDuration(playlist.duration)}\``,
+				value: `\`${formatDuration(result.getTotalDuration())}\``,
 				inline: true,
 			},
 		);
 
-	// biome-ignore lint/style/noNonNullAssertion: TODO: fix this
-	const firstTrack = playlist.tracks.at(0)!;
+	const firstTrack = result.getFirst();
 
-	promptEmbed.setThumbnail(firstTrack.displayThumbnail("mqdefault"));
+	if (firstTrack?.artworkUrl) {
+		promptEmbed.setThumbnail(firstTrack.artworkUrl);
+	}
 
 	const prompt = await interaction.editReply({
 		embeds: [promptEmbed],
@@ -260,9 +277,9 @@ async function promptConfirm(
 			return;
 		}
 
-		player.queue.add(playlist.tracks);
+		await player.queue.add(result.tracks);
 
-		const embed = createEnqueuedPlaylistEmbed(playlist, query, player.queue);
+		const embed = createEnqueuedPlaylistEmbed(result, query, player.queue);
 
 		await confirmation.update({
 			embeds: [embed],

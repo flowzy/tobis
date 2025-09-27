@@ -8,7 +8,7 @@ export default createCommand({
 		.setName("clear")
 		.setDescription("Clear queue"),
 
-	execute(bot, interaction) {
+	async execute(bot, interaction) {
 		if (!isInVoiceChannel(interaction)) {
 			return;
 		}
@@ -19,9 +19,9 @@ export default createCommand({
 			return;
 		}
 
-		player.queue.clear();
+		await player.queue.clear();
 
-		interaction.reply({
+		await interaction.reply({
 			content: "Queue cleared.",
 		});
 	},

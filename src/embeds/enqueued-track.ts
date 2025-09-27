@@ -1,15 +1,19 @@
 import { EmbedBuilder } from "discord.js";
-import type { Queue, Track } from "magmastream";
-import { EMBED_COLOR_SUCCESS } from "~/config/color";
+import type { Queue, SearchResult } from "moonlink.js";
+import { EmbedColor } from "~/constants/color";
 import { formatDuration } from "~/utils/format";
 
-export function createEnqueuedTrackEmbed(track: Track, queue: Queue) {
+export function createEnqueuedTrackEmbed(result: SearchResult, queue: Queue) {
+	const track = result.getFirst();
+
+	if (!track) {
+		throw new Error("Track not found");
+	}
+
 	const embed = new EmbedBuilder()
-		.setColor(EMBED_COLOR_SUCCESS)
+		.setColor(EmbedColor.Primary)
 		.setAuthor({ name: "Added to queue" })
 		.setTitle(track.title)
-		.setURL(track.uri)
-		.setThumbnail(track.displayThumbnail("mqdefault"))
 		.addFields(
 			{
 				name: track.isStream ? "Streamer" : "Uploaded",
@@ -24,6 +28,14 @@ export function createEnqueuedTrackEmbed(track: Track, queue: Queue) {
 				inline: true,
 			},
 		);
+
+	if (track.url) {
+		embed.setURL(track.url);
+	}
+
+	if (track.artworkUrl) {
+		embed.setThumbnail(track.artworkUrl);
+	}
 
 	if (queue.size) {
 		embed.addFields({

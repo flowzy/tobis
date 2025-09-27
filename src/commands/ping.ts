@@ -1,5 +1,5 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { EMBED_COLOR_SUCCESS } from "~/config/color";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { EmbedColor } from "~/constants/color";
 import { createCommand } from "~/factories/command";
 
 export default createCommand({
@@ -10,15 +10,15 @@ export default createCommand({
 	async execute(bot, interaction) {
 		const sent = await interaction.reply({
 			content: "Pinging... ",
-			fetchReply: true,
-			ephemeral: true,
+			withResponse: true,
+			flags: [MessageFlags.Ephemeral],
 		});
 
-		interaction.editReply({
+		await interaction.editReply({
 			content: null,
 			embeds: [
 				new EmbedBuilder()
-					.setColor(EMBED_COLOR_SUCCESS)
+					.setColor(EmbedColor.Primary)
 					.setAuthor({ name: "Pong!" })
 					.addFields(
 						{
@@ -29,7 +29,7 @@ export default createCommand({
 						{
 							name: "Roundtrip Latency",
 							value: `\`${
-								sent.createdTimestamp - interaction.createdTimestamp
+								sent.interaction.createdTimestamp - interaction.createdTimestamp
 							} ms\``,
 							inline: true,
 						},

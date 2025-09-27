@@ -1,6 +1,6 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import ms from "pretty-ms";
-import { EMBED_COLOR_SUCCESS } from "~/config/color";
+import { EmbedColor } from "~/constants/color";
 import { createCommand } from "~/factories/command";
 
 export default createCommand({
@@ -9,14 +9,14 @@ export default createCommand({
 		.setDescription("Get uptime of the bot"),
 
 	async execute(bot, interaction) {
-		interaction.reply({
-			ephemeral: true,
+		await interaction.reply({
 			embeds: [
 				new EmbedBuilder()
-					.setColor(EMBED_COLOR_SUCCESS)
+					.setColor(EmbedColor.Primary)
 					.setAuthor({ name: "Uptime" })
 					.setDescription(`Bot has been up for \`${ms(bot.client.uptime)}\``),
 			],
+			flags: [MessageFlags.Ephemeral],
 		});
 	},
 });

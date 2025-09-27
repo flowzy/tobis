@@ -1,5 +1,0 @@
-services:
-  bot:
-    command: /bin/sh -c 'bun install && bun run --watch index.ts'
-    environment:
-      - NODE_ENV=development

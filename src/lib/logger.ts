@@ -1,7 +1,8 @@
 import { createLogger, format, transports } from "winston";
+import { config } from "~/config";
 
 export const logger = createLogger({
-	level: "debug",
+	level: config.logging.level,
 	format: format.combine(
 		format.timestamp({
 			format: "YYYY-MM-DD HH:mm:ss",
@@ -10,11 +11,14 @@ export const logger = createLogger({
 		format.colorize(),
 		format.splat(),
 		format.printf((info) => {
+			// @ts-expect-error
 			if (info.stack) {
-				return `[${info.timestamp}] ${info.level}: ${info.stack}`;
+				// @ts-expect-error
+				return `[${info.timestamp}]\t${info.level}: ${info.stack}`;
 			}
 
-			return `[${info.timestamp}] ${info.level}: ${info.message}`;
+			// @ts-expect-error
+			return `[${info.timestamp}]\t${info.level}: ${info.message}`;
 		}),
 	),
 	transports: [new transports.Console()],

@@ -1,1 +1,0 @@
-export const PROMPT_DISPLAY_TIME_SECONDS = 45;

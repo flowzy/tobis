@@ -1,9 +1,11 @@
 import * as Sentry from "@sentry/bun";
-import type { ChatInputCommandInteraction } from "discord.js";
-import type { Player } from "magmastream";
-import type { Bot } from "~/interfaces/bot";
-import { env } from "~/env";
-import { isInSameVoiceChannel, isInVoiceChannel } from "./interaction";
+import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
+import type { Player, Track } from "moonlink.js";
+import type { Bot } from "~/bot";
+import { createErrorEmbed } from "~/embeds/error";
+import { logger } from "~/lib/logger";
+import { TimeUnit } from "~/utils/time";
+import { isInSameVoiceChannel } from "./interaction";
 
 /**
  * Finds an existing player for the guild.
@@ -19,9 +21,9 @@ export function getExistingPlayer(
 	const player = bot.lavalink.players.get(interaction.guild.id);
 
 	if (!player) {
-		interaction.reply({
+		void interaction.reply({
 			content: "I am not connected to a voice channel",
-			ephemeral: true,
+			flags: [MessageFlags.Ephemeral],
 		});
 
 		return;
@@ -29,11 +31,11 @@ export function getExistingPlayer(
 
 	if (
 		player.playing &&
-		player.voiceChannel !== interaction.member.voice.channel?.id
+		player.voiceChannelId !== interaction.member.voice.channel?.id
 	) {
-		interaction.reply({
-			content: `You must be in the same voice channel as me - <#${player.voiceChannel}>`,
-			ephemeral: true,
+		void interaction.reply({
+			content: `You must be in the same voice channel as me - <#${player.voiceChannelId}>`,
+			flags: [MessageFlags.Ephemeral],
 		});
 
 		return;
@@ -53,42 +55,61 @@ export function createPlayer(
 	bot: Bot,
 	interaction: ChatInputCommandInteraction<"cached">,
 ) {
-	if (!isInVoiceChannel(interaction)) {
+	const guildId = interaction.guild.id;
+
+	if (!isInSameVoiceChannel(interaction, bot.lavalink.players.get(guildId))) {
 		return;
 	}
-
-	let player: Player;
 
 	try {
-		player = bot.lavalink.create({
-			guild: interaction.guild.id,
-			voiceChannel: interaction.member.voice.channel.id,
-			textChannel: interaction.channelId,
-			selfDeafen: env.BOT_VOICE_SELF_DEAFEN,
-			volume: env.BOT_VOICE_VOLUME,
+		const player = bot.lavalink.players.create({
+			guildId,
+			voiceChannelId: interaction.member.voice.channel.id,
+			textChannelId: interaction.channelId,
 		});
+
+		if (player) {
+			return player;
+		}
+
+		logger.warn("failed to create player for guild %s", guildId);
+
+		if (interaction.deferred) {
+			void interaction.editReply({
+				embeds: [
+					createErrorEmbed({
+						title: "Error",
+						message: "Music player is not ready yet. Try again later.",
+					}),
+				],
+			});
+		} else if (interaction.isRepliable()) {
+			void interaction.reply({
+				embeds: [
+					createErrorEmbed({
+						title: "Error",
+						message: "Music player is not ready yet. Try again later.",
+					}),
+				],
+				flags: [MessageFlags.Ephemeral],
+			});
+		}
 	} catch (e) {
-		Sentry.captureException(e, {
-			extra: {
-				command: "play",
-			},
-		});
+		Sentry.captureException(e);
 
-		bot.logger.error(e);
+		logger.error(e);
 
-		interaction.reply({
-			content: "Music player is not ready yet. Try again later.",
-			ephemeral: true,
-		});
-
-		return;
+		if (interaction.deferred) {
+			void interaction.editReply({
+				content: "Music player is not ready yet. Try again later.",
+			});
+		} else if (interaction.isRepliable()) {
+			void interaction.reply({
+				content: "Music player is not ready yet. Try again later.",
+				flags: [MessageFlags.Ephemeral],
+			});
+		}
 	}
-
-	if (!isInSameVoiceChannel(interaction, player)) {
-		return;
-	}
-
-	return player;
 }
 
 /**
@@ -99,7 +120,58 @@ export function createPlayer(
 export async function startPlaying(player: Player) {
 	player.connect();
 
-	if (!player.playing && !player.paused && player.queue.totalSize) {
-		return player.play();
+	if (!player.playing && !player.paused && player.queue.size) {
+		await player.play();
 	}
+}
+
+/**
+ * Parses a position string into milliseconds.
+ * Supports formats like "+30s", "-2m", "1:30", "1h", etc.
+ *
+ * @param position
+ * @param track
+ */
+export function parsePosition(position: string, track: Track): number | null {
+	if (!track.isSeekable) {
+		return null;
+	}
+
+	const isRelative = position.startsWith("+") || position.startsWith("-");
+	const sign = position.startsWith("-") ? -1 : 1;
+	const value = isRelative ? position.slice(1) : position;
+
+	const colonParts = value.split(":").map(Number);
+	let ms = 0;
+
+	if (colonParts.length > 1) {
+		// Handle colon time formats (hh:mm:ss, mm:ss)
+		if (colonParts.length === 2) {
+			ms = colonParts[0] * TimeUnit.Minute + colonParts[1] * TimeUnit.Second;
+		} else if (colonParts.length === 3) {
+			ms =
+				colonParts[0] * TimeUnit.Hour +
+				colonParts[1] * TimeUnit.Minute +
+				colonParts[2] * TimeUnit.Second;
+		}
+	} else {
+		// Handle simple formats (e.g. 30s, 2m, 1h)
+		const match = value.match(/^(\d+)([smh]?)$/);
+		if (!match) return null;
+
+		const num = Number(match[1]);
+		const unit = match[2];
+
+		if (unit === "s") {
+			ms = num * TimeUnit.Second;
+		} else if (unit === "m") {
+			ms = num * TimeUnit.Minute;
+		} else if (unit === "h") {
+			ms = num * TimeUnit.Hour;
+		}
+	}
+
+	const newPosition = isRelative ? track.position + sign * ms : ms;
+
+	return Math.min(Math.max(0, newPosition), track.duration);
 }

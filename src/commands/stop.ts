@@ -1,5 +1,5 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { EMBED_COLOR_INFO } from "~/config/color";
+import { EmbedColor } from "~/constants/color";
 import { createCommand } from "~/factories/command";
 import { isInVoiceChannel } from "~/helpers/interaction";
 import { getExistingPlayer } from "~/helpers/player";
@@ -20,19 +20,14 @@ export default createCommand({
 			return;
 		}
 
-		const queueSize = player.queue.totalSize;
+		const queueSize = player.queue.size;
+		const voiceChannelId = player.voiceChannelId;
 
-		player.destroy(true);
-
-		if (!interaction.member.voice.channel) {
-			return;
-		}
+		player.destroy("stopped");
 
 		const embed = new EmbedBuilder()
-			.setColor(EMBED_COLOR_INFO)
-			.setDescription(
-				`Disconnected from <#${interaction.member.voice.channel.id}>`,
-			);
+			.setColor(EmbedColor.Info)
+			.setDescription(`Disconnected from <#${voiceChannelId}>`);
 
 		if (queueSize) {
 			embed.setFooter({ text: `Skipped ${queueSize} tracks` });

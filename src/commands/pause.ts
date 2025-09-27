@@ -7,18 +7,17 @@ export default createCommand({
 		.setName("pause")
 		.setDescription("Pauses the current track"),
 
-	execute(bot, interaction) {
+	async execute(bot, interaction) {
 		const player = getExistingPlayer(bot, interaction);
 
 		if (!player) {
 			return;
 		}
 
-		player.pause(true);
+		player.pause();
 
-		interaction.reply({
+		await interaction.reply({
 			content: "Paused.",
-			ephemeral: true,
 		});
 	},
 });

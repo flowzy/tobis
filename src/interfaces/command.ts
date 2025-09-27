@@ -3,7 +3,7 @@ import type {
 	SlashCommandBuilder,
 	SlashCommandOptionsOnlyBuilder,
 } from "discord.js";
-import type { Bot } from "~/interfaces/bot";
+import type { Bot } from "~/bot";
 
 export interface Command {
 	data:
@@ -11,6 +11,8 @@ export interface Command {
 		| SlashCommandOptionsOnlyBuilder
 		| Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 	permissions?: bigint[];
-	// biome-ignore lint/suspicious/noExplicitAny: TODO: fix this
-	execute(bot: Bot, interaction: ChatInputCommandInteraction<"cached">): any;
+	execute: (
+		bot: Bot,
+		interaction: ChatInputCommandInteraction<"cached">,
+	) => unknown;
 }
