@@ -1,6 +1,6 @@
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import { EmbedColor } from "~/constants/color";
-import { createCommand } from "~/structures/command";
+import { createCommand } from "~/factories/create-command";
 
 export default createCommand({
 	data: new SlashCommandBuilder()

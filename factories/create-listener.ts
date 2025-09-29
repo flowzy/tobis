@@ -1,6 +1,6 @@
 import type { ClientEvents } from "discord.js";
 import type { IEvents } from "moonlink.js";
-import type { Bot } from "~/app/bot";
+import type { Bot } from "~/entities/bot";
 
 export type ListenerEvent = keyof ClientEvents | keyof IEvents | ({} & string);
 export type ListenerExecute<TEvent> = (

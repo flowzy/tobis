@@ -3,7 +3,7 @@ import {
 	channelMention,
 	MessageFlags,
 } from "discord.js";
-import type { Bot } from "~/app/bot";
+import type { Bot } from "~/entities/bot";
 
 /**
  * Finds an existing player for the guild.

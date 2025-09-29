@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/bun";
 import { ActivityType, Client, GatewayIntentBits } from "discord.js";
-import { Bot } from "./bot";
-import { config } from "./config";
+import { config } from "~/bot/config";
+import { Bot } from "~/entities/bot";
 
 Sentry.init({
 	enabled: Boolean(config.logging.sentry.dsn && config.logging.sentry.enabled),

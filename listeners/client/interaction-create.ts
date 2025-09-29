@@ -1,10 +1,9 @@
 import * as Sentry from "@sentry/bun";
 import { MessageFlags } from "discord.js";
-import { config } from "~/app/config";
-import { createErrorEmbed } from "~/embeds/error";
+import { config } from "~/bot/config";
+import type { Command } from "~/factories/create-command";
+import { createListener } from "~/factories/create-listener";
 import { logger } from "~/lib/logger";
-import type { Command } from "~/structures/command";
-import { createListener } from "~/structures/listener";
 
 export default createListener({
 	event: "interactionCreate",
@@ -42,7 +41,7 @@ export default createListener({
 			!interaction.memberPermissions?.has(command.permissions)
 		) {
 			return interaction.reply({
-				content: "You do not have permission to use this command",
+				content: "You do not have permission to use this command.",
 				flags: [MessageFlags.Ephemeral],
 			});
 		}
@@ -58,19 +57,15 @@ export default createListener({
 
 			logger.error(e);
 
-			const embed = createErrorEmbed({
-				message: "Something went wrong. Please try again later.",
-			});
-
 			if (interaction.replied || interaction.deferred) {
 				return interaction.followUp({
-					embeds: [embed],
+					content: "Something went wrong. Please try again later.",
 					flags: [MessageFlags.Ephemeral],
 				});
 			}
 
 			return interaction.reply({
-				embeds: [embed],
+				content: "Something went wrong. Please try again later.",
 				flags: [MessageFlags.Ephemeral],
 			});
 		}

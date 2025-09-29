@@ -1,11 +1,11 @@
 import * as Sentry from "@sentry/bun";
 import type { Client } from "discord.js";
 import { type IEvents, Manager } from "moonlink.js";
-import type { Bot } from "~/app/bot";
-import { config } from "~/app/config";
+import { config } from "~/bot/config";
+import type { Bot } from "~/entities/bot";
 import { NowPlaying } from "~/entities/now-playing";
+import type { Listener } from "~/factories/create-listener";
 import { logger } from "~/lib/logger";
-import type { Listener } from "~/structures/listener";
 import { readDir } from "~/utils/read-dir";
 
 export class Lavalink {
@@ -38,7 +38,7 @@ export class Lavalink {
 	}
 
 	private addListeners() {
-		const files = readDir("../listeners/lavalink/*.ts");
+		const files = readDir("./listeners/lavalink/*.ts");
 
 		for (const file of files) {
 			const listener = require(file).default as Listener;

@@ -1,8 +1,12 @@
 import { EmbedBuilder } from "discord.js";
 import ms from "pretty-ms";
-import { config } from "~/app/config";
+import { config } from "~/bot/config";
 import { EmbedColor } from "~/constants/color";
-import { createListener } from "~/structures/listener";
+import { TimeUnit } from "~/constants/time-unit";
+import { createListener } from "~/factories/create-listener";
+
+const DISCONNECT_TIMEOUT_MS =
+	config.voice.idle_disconnect_seconds * TimeUnit.Second;
 
 export default createListener({
 	event: "queueEnd",
@@ -20,9 +24,7 @@ export default createListener({
 
 			if (config.voice.idle_auto_disconnect) {
 				embed.setFooter({
-					text: `Leaving voice channel in ${ms(
-						config.voice.idle_disconnect_seconds * 1_000,
-					)}`,
+					text: `Leaving voice channel in ${ms(DISCONNECT_TIMEOUT_MS)}`,
 				});
 			}
 
@@ -36,9 +38,13 @@ export default createListener({
 		}
 
 		setTimeout(() => {
+			if (bot.lavalink.nowPlaying.has(player)) {
+				return;
+			}
+
 			if (!player.playing && !player.queue.size) {
 				player.destroy("idle");
 			}
-		}, config.voice.idle_disconnect_seconds * 1_000);
+		}, DISCONNECT_TIMEOUT_MS);
 	},
 });

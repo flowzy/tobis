@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/bun";
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import type { Bot } from "~/app/bot";
 import { createErrorEmbed } from "~/embeds/error";
+import type { Bot } from "~/entities/bot";
 import { logger } from "~/lib/logger";
-import { isInSameVoiceChannel } from "~/utils/interaction";
+import { isInSameVoiceChannel } from "~/utils/is-in-voice-channel";
 
 /**
  * Creates a new player for the guild.

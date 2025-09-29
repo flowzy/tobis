@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
-import { createCommand } from "~/structures/command";
+import { createCommand } from "~/factories/create-command";
 import { getExistingPlayer } from "~/utils/get-existing-player";
-import { isInVoiceChannel } from "~/utils/interaction";
+import { isInVoiceChannel } from "~/utils/is-in-voice-channel";
 
 export default createCommand({
 	data: new SlashCommandBuilder()

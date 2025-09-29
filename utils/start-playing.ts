@@ -6,13 +6,10 @@ import type { Player } from "moonlink.js";
  * @param player
  */
 export async function startPlaying(player: Player) {
-	if (!player.queue.size) {
+	if (!player.queue.size || player.playing || player.paused) {
 		return;
 	}
 
 	player.connect();
-
-	if (!player.playing && !player.paused) {
-		await player.play();
-	}
+	await player.play();
 }

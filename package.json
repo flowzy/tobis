@@ -1,9 +1,9 @@
 {
 	"name": "tobis",
 	"type": "module",
-	"module": "app/main.ts",
+	"module": "bot/main.ts",
 	"scripts": {
-		"dev": "bun run --watch app/main.ts",
+		"dev": "bun run --watch ./bot/main.ts",
 		"format": "biome format --write .",
 		"lint": "biome lint .",
 		"check": "tsgo"

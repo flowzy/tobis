@@ -1,5 +1,5 @@
 import { createLogger, format, transports } from "winston";
-import { config } from "~/app/config";
+import { config } from "~/bot/config";
 
 export const logger = createLogger({
 	level: config.logging.level,

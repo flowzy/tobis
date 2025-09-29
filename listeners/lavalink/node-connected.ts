@@ -1,5 +1,5 @@
+import { createListener } from "~/factories/create-listener";
 import { logger } from "~/lib/logger";
-import { createListener } from "~/structures/listener";
 
 export default createListener({
 	event: "nodeConnected",

@@ -2,6 +2,6 @@
 .vscode
 
 lavalink/*
-config/*
+bot/config.ts
 
 node_modules

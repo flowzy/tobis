@@ -5,7 +5,7 @@ services:
     restart: always
     volumes:
       - .:/home/bun/app
-    entrypoint: bun run --install=auto main.ts
+    entrypoint: bun run --install=auto ./bot/main.ts
     depends_on:
       - lavalink
 

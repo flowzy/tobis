@@ -11,14 +11,14 @@ import {
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
 import type { SearchResult } from "moonlink.js";
-import type { Bot } from "~/app/bot";
 import { EmbedColor } from "~/constants/color";
 import { TimeUnit } from "~/constants/time-unit";
 import { createEnqueuedTrackEmbed } from "~/embeds/enqueued-track";
 import { createErrorEmbed } from "~/embeds/error";
 import { createInfoEmbed } from "~/embeds/info";
+import type { Bot } from "~/entities/bot";
+import { createCommand } from "~/factories/create-command";
 import { logger } from "~/lib/logger";
-import { createCommand } from "~/structures/command";
 import { createPlayer } from "~/utils/create-player";
 import { formatDuration } from "~/utils/format-duration";
 import { startPlaying } from "~/utils/start-playing";

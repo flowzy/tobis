@@ -1,5 +1,4 @@
 import { z } from "zod";
-import configFile from "../config/bot.config.yml";
 
 const schema = z.object({
 	mode: z.enum(["production", "development"]).default("production"),
@@ -44,16 +43,20 @@ const schema = z.object({
 	}),
 });
 
-const validation = z.safeParse(schema, configFile);
+type BotConfig = z.infer<typeof schema>;
 
-if (!validation.success) {
-	console.error("Invalid configuration:");
+export function createBotConfig(config: BotConfig) {
+	const validation = z.safeParse(schema, config);
 
-	for (const issue of validation.error.issues) {
-		console.error(`  - [${issue.path.join(" -> ")}]: ${issue.message}`);
+	if (!validation.success) {
+		console.error("Invalid configuration:");
+
+		for (const issue of validation.error.issues) {
+			console.error(`  - [${issue.path.join(" -> ")}]: ${issue.message}`);
+		}
+
+		process.exit(1);
 	}
 
-	process.exit(1);
+	return validation.data;
 }
-
-export const config = validation.data;

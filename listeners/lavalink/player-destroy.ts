@@ -1,4 +1,4 @@
-import { createListener } from "~/structures/listener";
+import { createListener } from "~/factories/create-listener";
 
 export default createListener({
 	event: "playerDestroy",

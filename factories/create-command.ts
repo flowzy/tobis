@@ -3,7 +3,7 @@ import type {
 	SlashCommandBuilder,
 	SlashCommandOptionsOnlyBuilder,
 } from "discord.js";
-import type { Bot } from "~/app/bot";
+import type { Bot } from "~/entities/bot";
 
 export interface Command {
 	data:

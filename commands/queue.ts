@@ -1,10 +1,10 @@
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import ms from "pretty-ms";
 import { EmbedColor } from "~/constants/color";
-import { createCommand } from "~/structures/command";
+import { createCommand } from "~/factories/create-command";
 import { formatDuration } from "~/utils/format-duration";
 import { getExistingPlayer } from "~/utils/get-existing-player";
-import { requestorMention } from "~/utils/mention";
+import { requestorMention } from "~/utils/requestor-mention";
 
 export default createCommand({
 	data: new SlashCommandBuilder()

@@ -3,7 +3,7 @@ import type { Player, Track } from "moonlink.js";
 import { EmbedColor } from "~/constants/color";
 import { logger } from "~/lib/logger";
 import { formatDuration } from "~/utils/format-duration";
-import { requestorMention } from "~/utils/mention";
+import { requestorMention } from "~/utils/requestor-mention";
 
 export class NowPlaying {
 	private cache = new Map<string, Message>();
@@ -11,6 +11,10 @@ export class NowPlaying {
 
 	constructor(client: Client<true>) {
 		this.client = client;
+	}
+
+	public has(player: Player) {
+		return this.cache.has(player.textChannelId);
 	}
 
 	public async set(player: Player, track: Track) {

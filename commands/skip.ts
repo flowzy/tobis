@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from "discord.js";
 import { createInfoEmbed } from "~/embeds/info";
-import { createCommand } from "~/structures/command";
+import { createCommand } from "~/factories/create-command";
 import { getExistingPlayer } from "~/utils/get-existing-player";
-import { isInSameVoiceChannel } from "~/utils/interaction";
+import { isInSameVoiceChannel } from "~/utils/is-in-voice-channel";
 
 export default createCommand({
 	data: new SlashCommandBuilder()

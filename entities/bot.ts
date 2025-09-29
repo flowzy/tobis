@@ -1,10 +1,10 @@
 import * as Sentry from "@sentry/bun";
 import { type Client, type ClientEvents, Collection, REST } from "discord.js";
-import { config } from "~/app/config";
+import { config } from "~/bot/config";
 import { Lavalink } from "~/entities/lavalink";
+import type { Command } from "~/factories/create-command";
+import type { Listener } from "~/factories/create-listener";
 import { logger } from "~/lib/logger";
-import type { Command } from "~/structures/command";
-import type { Listener } from "~/structures/listener";
 import { readDir } from "~/utils/read-dir";
 
 export class Bot {
@@ -27,7 +27,7 @@ export class Bot {
 	}
 
 	private addListeners() {
-		const files = readDir("../listeners/client/*.ts");
+		const files = readDir("./listeners/client/*.ts");
 
 		for (const file of files) {
 			const listener = require(file).default as Listener;

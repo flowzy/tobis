@@ -4,10 +4,10 @@ import {
 	type RESTPostAPIChatInputApplicationCommandsJSONBody,
 	Routes,
 } from "discord.js";
-import { config } from "~/app/config";
+import { config } from "~/bot/config";
+import type { Command } from "~/factories/create-command";
+import { createListener } from "~/factories/create-listener";
 import { logger } from "~/lib/logger";
-import type { Command } from "~/structures/command";
-import { createListener } from "~/structures/listener";
 import { readDir } from "~/utils/read-dir";
 
 export default createListener({
