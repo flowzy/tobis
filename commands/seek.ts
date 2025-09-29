@@ -3,7 +3,7 @@ import { createInfoEmbed } from "~/embeds/info";
 import { createCommand } from "~/factories/create-command";
 import { formatDuration } from "~/utils/format-duration";
 import { getExistingPlayer } from "~/utils/get-existing-player";
-import { isInSameVoiceChannel } from "~/utils/is-in-voice-channel";
+import { isInSameVoiceChannel } from "~/utils/is-in-same-voice-channel";
 import { parsePosition } from "~/utils/parse-position";
 
 export default createCommand({

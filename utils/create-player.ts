@@ -3,7 +3,7 @@ import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { createErrorEmbed } from "~/embeds/error";
 import type { Bot } from "~/entities/bot";
 import { logger } from "~/lib/logger";
-import { isInSameVoiceChannel } from "~/utils/is-in-voice-channel";
+import { isInSameVoiceChannel } from "~/utils/is-in-same-voice-channel";
 
 /**
  * Creates a new player for the guild.
