@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import { createInfoEmbed } from "~/embeds/info";
 import { createCommand } from "~/factories/create-command";
 import { getExistingPlayer } from "~/utils/get-existing-player";
@@ -16,15 +16,21 @@ export default createCommand({
 			return;
 		}
 
-		const track = player.current;
+		const message = `**[${player.current.title}](${player.current.url})** has been skipped`;
 
-		await player.skip();
+		const skipped = await player.skip();
+
+		if (!skipped) {
+			return interaction.reply({
+				content: "There is no track to skip",
+				flags: [MessageFlags.Ephemeral],
+			});
+		}
 
 		await interaction.reply({
 			embeds: [
 				createInfoEmbed({
-					title: "Track Skipped",
-					message: `[**${track.title}**](${track.url}) has been skipped`,
+					message,
 				}),
 			],
 		});
