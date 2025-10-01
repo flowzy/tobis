@@ -82,7 +82,7 @@ async function search(
 		query,
 		source,
 		requester: interaction.user.id,
-		limit: 10,
+		limit: 20,
 	});
 
 	switch (result.loadType) {
@@ -190,7 +190,7 @@ async function prompt(
 			return;
 		}
 
-		const trackIndex = parseInt(confirmation.values.at(0) ?? "", 10);
+		const trackIndex = parseInt(confirmation.values.at(0) ?? "", 10) - 1;
 		const track = result.tracks[trackIndex];
 
 		if (!track) {
