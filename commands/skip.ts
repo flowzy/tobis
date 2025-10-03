@@ -16,15 +16,18 @@ export default createCommand({
 			return;
 		}
 
-		const message = `**[${player.current.title}](${player.current.url})** has been skipped`;
-
-		const skipped = await player.skip();
-
-		if (!skipped) {
+		if (!player.queue.size) {
 			return interaction.reply({
 				content: "There is no track to skip",
 				flags: [MessageFlags.Ephemeral],
 			});
+		}
+
+		const message = `**[${player.current.title}](${player.current.url})** has been skipped`;
+		const skipped = await player.skip();
+
+		if (!skipped) {
+			player.stop();
 		}
 
 		await interaction.reply({

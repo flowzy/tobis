@@ -190,8 +190,11 @@ async function prompt(
 			return;
 		}
 
-		const trackIndex = parseInt(confirmation.values.at(0) ?? "", 10) - 1;
-		const track = result.tracks[trackIndex];
+		const [trackPosition] = confirmation.values;
+
+		logger.debug("User selected a track to play at position %s", trackPosition);
+
+		const track = result.tracks[+trackPosition - 1];
 
 		if (!track) {
 			await confirmation.update({
@@ -226,6 +229,7 @@ async function confirm(
 		.setLabel("Yes")
 		.setCustomId("confirm")
 		.setStyle(ButtonStyle.Success);
+
 	const cancel = new ButtonBuilder()
 		.setLabel("Cancel")
 		.setCustomId("cancel")
@@ -271,6 +275,12 @@ async function confirm(
 				filter: (i) => i.user.id === interaction.user.id,
 				time: PROMPT_DISPLAY_TIME,
 			});
+
+		if (confirmation.customId === "cancel") {
+			await prompt.delete();
+			logger.debug("User cancelled playlist confirmation");
+			return;
+		}
 
 		const player = createPlayer(bot, interaction);
 
