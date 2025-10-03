@@ -194,7 +194,7 @@ async function prompt(
 
 		logger.debug("User selected a track to play at position %s", trackPosition);
 
-		const track = result.tracks[+trackPosition - 1];
+		const track = result.tracks[+trackPosition];
 
 		if (!track) {
 			await confirmation.update({
