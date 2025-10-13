@@ -21,7 +21,7 @@
 		"magmastream": "^2.5.5",
 		"pretty-ms": "^9.0.0",
 		"winston": "^3.13.0",
-		"zod": "^3.23.8"
+		"zod": "^4.1.12"
 	},
 	"trustedDependencies": ["@biomejs/biome", "lefthook"]
 }
